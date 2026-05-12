@@ -7,6 +7,7 @@ import NewRun                          from './pages/NewRun.jsx';
 import Drafts                          from './pages/Drafts.jsx';
 import Eval                            from './pages/Eval.jsx';
 import TraceLogs                       from './pages/TraceLogs.jsx';
+import History                         from './pages/History.jsx';
 
 export default function App() {
   const [apiStatus, setApiStatus] = useState('checking');
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/drafts"     element={<Drafts />}     />
             <Route path="/eval"       element={<Eval />}       />
             <Route path="/trace-logs" element={<TraceLogs />}  />
+            <Route path="/history"    element={<History />}    />
           </Routes>
         </main>
       </div>

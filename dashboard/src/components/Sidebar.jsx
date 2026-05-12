@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Plus, FileText, BarChart2,
-  Activity, Cpu, Circle
+  Activity, Cpu, Circle, Clock
 } from 'lucide-react';
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/new-run',   icon: Plus,            label: 'New Run'     },
   { to: '/drafts',    icon: FileText,         label: 'Drafts'      },
   { to: '/eval',      icon: BarChart2,        label: 'Eval'        },
+  { to: '/history',   icon: Clock,            label: 'History'     },
   { to: '/trace-logs',icon: Activity,         label: 'Trace Logs'  },
 ];
 

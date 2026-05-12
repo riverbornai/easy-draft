@@ -173,7 +173,7 @@ export default function Drafts() {
       setData(r.data);
       // If backend says it's already approved, update local status to disable buttons
       if (r.data.reviewStatus === 'approved') {
-        setStatus('approved-gpt4o'); // Defaulting to gpt4o if approved
+        setStatus(`approved-${r.data.activeModel || 'gpt4o'}`);
       }
     }).catch(() => {});
 
@@ -188,13 +188,13 @@ export default function Drafts() {
     setLoading(true);
     try {
       await axios.post('/api/drafts/approve', {
+        runId: data?.runId, // Pass the specific run ID
         model,
         editedContent: editedContent ?? undefined,
       });
       setStatus(`approved-${model}`);
       showToast(`✓ ${model === 'gpt4o' ? 'GPT-4o' : 'Claude'} draft approved — moving to Publisher Agent.`);
       
-      // Auto-redirect to dashboard after 2.5 seconds to see progress
       setTimeout(() => {
         navigate('/');
       }, 2500);
@@ -208,10 +208,14 @@ export default function Drafts() {
   const handleReject = async (model, feedback) => {
     setLoading(true);
     try {
-      await axios.post('/api/drafts/reject', { model, feedback });
+      await axios.post('/api/drafts/reject', { 
+        runId: data?.runId, // Pass the specific run ID
+        model, 
+        feedback 
+      });
       setStatus('');
       showToast(`↩ Feedback sent — Writer Agent rewriting (cycle ${(data?.reviewAttempts ?? 0) + 1}/3)`);
-      setTimeout(fetchDrafts, 3500); // refresh after simulated rewrite
+      setTimeout(fetchDrafts, 3500);
     } catch (_) {
       showToast('Failed to send rejection feedback.');
     } finally {
