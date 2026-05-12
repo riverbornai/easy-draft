@@ -28,7 +28,8 @@ router.get('/', (_req, res) => {
     reviewStatus: active?.reviewStatus ?? 'none',
     reviewAttempts: active?.reviewAttempts ?? 0,
     reviewNotes: active?.reviewNotes ?? [],
-    runId: active?.sessionId ?? null
+    runId: active?.sessionId ?? null,
+    activeModel: active?.activeModel ?? null
   });
 });
 

@@ -29,7 +29,7 @@ import { runWriterAgent }     from './agents/writerAgent.js';
 import { runReviewAgent }     from './agents/reviewAgent.js';
 import { runPublisherAgent }  from './agents/publisherAgent.js';
 import { runEvalRunner }      from './agents/evalRunner.js';
-import { updateSession, logError, addLog } from './session.js';
+import { updateSession, logError, addLog, getSession } from './session.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -71,6 +71,7 @@ export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null
     // ── Phase 1: Intake ──────────────────────────────────────────────────────
     printPhaseHeader(1, 'Intake Agent — Collecting Brief');
     session = await runIntakeAgent({ skipMultiTurn, preFilledBrief });
+    session = getSession(session.sessionId) || session; // Ensure freshest state
     addLog(session.sessionId, 'IntakeAgent', 'Brief collected and validated.');
     updateSession(session.sessionId, { pipelineStatus: 'research', currentStep: 1 });
 
@@ -78,6 +79,7 @@ export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null
     printPhaseHeader(2, 'Research Agent — Building Fact Sheet');
     addLog(session.sessionId, 'ResearchAgent', 'Starting deep research on topic...');
     session = await runResearchAgent(session);
+    session = getSession(session.sessionId) || session;
     addLog(session.sessionId, 'ResearchAgent', 'Fact sheet synthesized and saved.');
     updateSession(session.sessionId, { pipelineStatus: 'writing', currentStep: 2 });
 
@@ -92,12 +94,14 @@ export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null
       addLog(session.sessionId, 'WriterAgent', `Generating content drafts (cycle ${reviewCycles})...`);
       const feedback = session.reviewNotes?.at(-1) ?? null;
       session = await runWriterAgent(session, feedback);
+      session = getSession(session.sessionId) || session;
       addLog(session.sessionId, 'WriterAgent', 'Drafts ready for human review.');
 
       printPhaseHeader(4, `Review Agent — Human-in-the-Loop Approval (cycle ${reviewCycles})`);
       updateSession(session.sessionId, { pipelineStatus: 'review', currentStep: 3 });
       addLog(session.sessionId, 'ReviewAgent', 'Waiting for human approval...');
       session = await runReviewAgent(session);
+      session = getSession(session.sessionId) || session;
       addLog(session.sessionId, 'ReviewAgent', `Draft ${session.reviewStatus}.`);
 
       reviewStatus = session.reviewStatus ?? 'pending';
@@ -118,6 +122,7 @@ export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null
       updateSession(session.sessionId, { pipelineStatus: 'publish', currentStep: 4 });
       addLog(session.sessionId, 'PublisherAgent', 'Formatting and saving final output...');
       session = await runPublisherAgent(session);
+      session = getSession(session.sessionId) || session;
       addLog(session.sessionId, 'PublisherAgent', 'Output published successfully.');
       updateSession(session.sessionId, { pipelineStatus: 'eval', currentStep: 5 });
     }
@@ -126,6 +131,7 @@ export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null
     printPhaseHeader(6, 'Eval Runner — Scoring & Tracing');
     addLog(session.sessionId, 'EvalRunner', 'Running automated quality scoring...');
     session = await runEvalRunner(session);
+    session = getSession(session.sessionId) || session;
     addLog(session.sessionId, 'EvalRunner', 'Evaluation complete. Pipeline finished.');
     updateSession(session.sessionId, { pipelineStatus: 'done' });
 

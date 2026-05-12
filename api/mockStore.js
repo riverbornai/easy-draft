@@ -67,6 +67,7 @@ export const historicalRuns = [
 // activeRuns is now a proxy getter that pulls from session.js
 export const activeRuns = {
   get: (id) => getSession(id),
+  has: (id) => !!getSession(id),
   set: (id, val) => { /* session.js handles its own setting via createSession */ },
   delete: (id) => { /* cleanup logic if needed */ },
   values: () => allSessions().map(id => getSession(id)),

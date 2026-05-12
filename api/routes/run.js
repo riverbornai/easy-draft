@@ -39,13 +39,17 @@ router.post('/start', async (req, res) => {
     const hist = historicalRuns.find(r => r.id === session.sessionId);
     if (!hist) {
        historicalRuns.push({
-         id: session.sessionId,
-         topic: session.brief.topic,
-         channel: session.brief.channel,
-         winner: 'gpt4o',
-         gpt4oScore: session.evalScores?.overall,
-         status: 'done',
-         createdAt: new Date().toISOString()
+         id:             session.sessionId,
+         topic:          session.brief.topic,
+         channel:        session.brief.channel,
+         winner:         session.activeModel || 'gpt4o',
+         approvedDraft:  session.approvedDraft,
+         gpt4oDraft:     session.gpt4oDraft,
+         claudeDraft:    session.claudeDraft,
+         gpt4oScore:     session.evalScores?.overall,
+         status:         'done',
+         createdAt:      session.createdAt || new Date().toISOString(),
+         publishedPath:  session.publishedPath
        });
     }
   } catch (err) {

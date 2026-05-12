@@ -272,11 +272,20 @@ export async function runReviewAgent(session) {
 
     // ── Step 3: Process HITL decision ─────────────────────────────────────────
     if (hitlResult.decision === 'approved') {
-      approvedDraft = draft;
-      appendHistory(sessionId, 'assistant', `ReviewAgent: Draft approved by human (attempt ${attempt}).`);
+      // Re-read session to see which model the user actually picked in the web UI
+      const updatedSession = getSession(sessionId) || session;
+      const modelPicked = updatedSession.activeModel || activeModel;
+      
+      // If the web UI already set approvedDraft, use it. Otherwise calculate it.
+      approvedDraft = updatedSession.approvedDraft || (modelPicked === 'claude' 
+        ? (updatedSession.claudeDraft || updatedSession.gpt4oDraft)
+        : (updatedSession.gpt4oDraft || updatedSession.claudeDraft));
+
+      appendHistory(sessionId, 'assistant', `ReviewAgent: Draft approved by human (attempt ${attempt}, model: ${modelPicked}).`);
 
       reviewResult = updateSession(sessionId, {
         approvedDraft,
+        activeModel:    modelPicked,
         reviewStatus:   'approved',
         pipelineStatus: 'publish-ready',
       });
