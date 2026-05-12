@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node index.js",
     "dev:api": "node api/server.js",
-    "dev:client": "cd client && yarn dev",
+    "dev:client": "cd dashboard && yarn dev",
     "dev": "concurrently -n API,Client -c cyan,magenta \"yarn dev:api\" \"yarn dev:client\""
   },
   "dependencies": {
