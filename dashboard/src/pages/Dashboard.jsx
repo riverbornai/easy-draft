@@ -7,10 +7,10 @@ import PipelineBar from '../components/PipelineBar.jsx';
 import AgentLog    from '../components/AgentLog.jsx';
 
 const SCORE_BARS = [
-  { key: 'accuracy',         label: 'Accuracy',          color: 'bg-teal-400'   },
-  { key: 'toneMatch',        label: 'Tone Match',        color: 'bg-violet-400' },
-  { key: 'formatCompliance', label: 'Format Compliance', color: 'bg-blue-400'   },
-  { key: 'hookStrength',     label: 'Hook Strength',     color: 'bg-amber-400'  },
+  { key: 'accuracy',         label: 'Accuracy',          color: 'bg-emerald-400' },
+  { key: 'toneMatch',        label: 'Tone Match',        color: 'bg-indigo-400'  },
+  { key: 'formatCompliance', label: 'Format Compliance', color: 'bg-sky-400'     },
+  { key: 'hookStrength',     label: 'Hook Strength',     color: 'bg-orange-400'  },
 ];
 
 export default function Dashboard() {
@@ -58,7 +58,7 @@ export default function Dashboard() {
   return (
     <div className="p-8 max-w-7xl mx-auto fade-in">
       {/* Header */}
-      <div className="mb-8 flex items-end justify-between">
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-400 mt-1">Multi-agent content pipeline monitor</p>
@@ -141,8 +141,8 @@ export default function Dashboard() {
         </div>
 
         {/* Eval scores (1/3 width) */}
-        <div className="bg-white border border-gray-100 rounded-xl p-5">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+        <div className="bg-white border border-gray-100/80 rounded-2xl p-6 shadow-sm">
+          <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-6">
             Last Run Scores
           </h3>
           {evalScores ? (

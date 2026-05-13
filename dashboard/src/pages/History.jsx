@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Clock, Calendar, ChevronRight, FileText, ExternalLink } from 'lucide-react';
+import { Clock, Calendar, ChevronRight, FileText, ExternalLink, Copy, Check } from 'lucide-react';
 
 export default function History() {
   const [runs, setRuns] = useState([]);
   const [selectedRun, setSelectedRun] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchRuns();
@@ -28,6 +29,19 @@ export default function History() {
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const handleCopy = () => {
+    const content = selectedRun.approvedDraft || 
+      ((selectedRun.winner || selectedRun.activeModel) === 'claude' 
+        ? selectedRun.claudeDraft 
+        : selectedRun.gpt4oDraft);
+    
+    if (content) {
+      navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -129,10 +143,23 @@ export default function History() {
             {/* Post Content */}
             <div className="prose prose-slate max-w-none">
               <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100 relative group">
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 hover:bg-gray-200 rounded-lg text-gray-500 transition-colors">
-                    <ExternalLink size={16} />
+                <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+                  <button 
+                    onClick={handleCopy}
+                    className={`p-2 rounded-full border shadow-sm transition-all duration-300 transform active:scale-90 ${
+                      copied 
+                        ? 'bg-green-500 border-green-500 text-white' 
+                        : 'bg-white border-gray-100 text-gray-500 hover:text-violet-600 hover:border-violet-200 hover:shadow-md'
+                    }`}
+                    title="Copy content"
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
                   </button>
+                  {copied && (
+                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                      Copied!
+                    </span>
+                  )}
                 </div>
                 
                 {selectedRun.approvedDraft ? (

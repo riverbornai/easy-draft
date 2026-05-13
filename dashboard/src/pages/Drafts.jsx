@@ -294,9 +294,9 @@ export default function Drafts() {
       </div>
 
       {/* Help text */}
-      <p className="mt-4 text-xs text-gray-300 text-center">
-        Click <strong className="text-gray-400">Edit</strong> to modify a draft inline, then Save & Approve ·
-        Click <strong className="text-gray-400">Reject</strong> to send feedback back to the Writer Agent (max 3 cycles)
+      <p className="mt-8 text-xs text-gray-500 text-center leading-relaxed">
+        Click <strong className="text-gray-700 font-bold">Edit</strong> to modify a draft inline, then Save & Approve · 
+        Click <strong className="text-gray-700 font-bold">Reject</strong> to send feedback back to the Writer Agent (max 3 cycles)
       </p>
     </div>
   );

@@ -65,7 +65,6 @@ export default function Sidebar({ apiStatus }) {
             API {apiStatus === 'connected' ? 'connected' : 'offline'}
           </span>
         </div>
-        <p className="text-white/15 text-[10px] mt-1">localhost:3001</p>
       </div>
     </aside>
   );
