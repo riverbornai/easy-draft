@@ -44,7 +44,7 @@ export default function Dashboard() {
           <p className="text-sm text-gray-400 mt-1 font-medium">Here's what's happening with your content studio.</p>
         </div>
         <button
-          onClick={() => navigate('/new-run')}
+          onClick={() => navigate('/runs/new')}
           className="flex items-center gap-2 bg-gray-900 text-white text-sm font-bold px-6 py-3.5 rounded-xl hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-200 transition-all active:scale-[0.98]"
         >
           <Plus size={16} />
@@ -101,7 +101,7 @@ export default function Dashboard() {
                <Layout size={48} className="mx-auto text-gray-100 mb-4" />
                <p className="text-gray-400 font-medium text-sm">No runs yet. Start your first content pipeline!</p>
                <button 
-                 onClick={() => navigate('/new-run')}
+                 onClick={() => navigate('/runs/new')}
                  className="mt-6 text-violet-600 font-bold text-xs uppercase tracking-widest hover:underline"
                >
                  Create New Run
@@ -111,7 +111,7 @@ export default function Dashboard() {
             runs.map((run) => (
               <div 
                 key={run.id || run.sessionId}
-                onClick={() => navigate(`/run/${run.id || run.sessionId}`)}
+                onClick={() => navigate(`/runs/${(run.id || run.sessionId).replace('session_', '')}`)}
                 className="group bg-white border border-gray-100 rounded-2xl p-5 flex items-center gap-6 hover:shadow-xl hover:shadow-gray-100 hover:border-violet-100 transition-all cursor-pointer"
               >
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
