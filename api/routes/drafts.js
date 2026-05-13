@@ -37,7 +37,14 @@ router.get('/', (_req, res) => {
 router.post('/approve', (req, res) => {
   const { runId, model, editedContent } = req.body; // model: 'gpt4o' | 'claude'
   // Find most recent active run if no runId specified
-  const run = runId ? activeRuns.get(runId) : [...activeRuns.values()].at(-1);
+  const id = runId;
+  let run = id ? activeRuns.get(id) : null;
+  if (!run && id && !id.startsWith('session_')) {
+    run = activeRuns.get(`session_${id}`);
+  }
+  if (!run && !id) {
+    run = [...activeRuns.values()].at(-1);
+  }
 
   if (run) {
     run.reviewStatus   = 'approved';
@@ -58,7 +65,14 @@ router.post('/approve', (req, res) => {
 // ── POST /api/drafts/reject ───────────────────────────────────────────────────
 router.post('/reject', (req, res) => {
   const { runId, feedback } = req.body;
-  const run = runId ? activeRuns.get(runId) : [...activeRuns.values()].at(-1);
+  const id = runId;
+  let run = id ? activeRuns.get(id) : null;
+  if (!run && id && !id.startsWith('session_')) {
+    run = activeRuns.get(`session_${id}`);
+  }
+  if (!run && !id) {
+    run = [...activeRuns.values()].at(-1);
+  }
   
   if (run) {
     run.reviewStatus = 'rejected';
