@@ -24,7 +24,7 @@ router.get('/agents/log', (req, res) => {
   }
 
   if (runId && runId !== 'All') {
-    allLogs = allLogs.filter(l => l.runId === runId);
+    allLogs = allLogs.filter(l => l.runId === runId || l.runId.replace('session_', '') === runId);
   }
 
   // Sort latest first
