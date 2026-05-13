@@ -77,7 +77,26 @@ router.post('/start', async (req, res) => {
 
 // ── GET /api/run/status/:id ───────────────────────────────────────────────────
 router.get('/status/:id', (req, res) => {
-  const run = activeRuns.get(req.params.id);
+  const id = req.params.id;
+  let run = activeRuns.get(id);
+  
+  // If not found, try with session_ prefix for active runs
+  if (!run && !id.startsWith('session_')) {
+    run = activeRuns.get(`session_${id}`);
+  }
+
+  // If still not found, check historical runs
+  if (!run) {
+    run = historicalRuns.find(h => 
+      h.id === id || 
+      h.sessionId === id || 
+      (h.id && h.id.replace('session_', '') === id) ||
+      (h.sessionId && h.sessionId.replace('session_', '') === id) ||
+      `session_${h.id}` === id ||
+      `session_${h.sessionId}` === id
+    );
+  }
+
   if (!run) return res.status(404).json({ error: 'Run not found' });
   res.json(run);
 });
