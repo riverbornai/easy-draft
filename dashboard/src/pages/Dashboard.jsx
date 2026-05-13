@@ -1,179 +1,160 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate }                 from 'react-router-dom';
-import axios                           from 'axios';
-import { Activity, Search, ShieldAlert, TrendingUp, AlertTriangle, ArrowRight } from 'lucide-react';
-import ScoreCard   from '../components/ScoreCard.jsx';
-import PipelineBar from '../components/PipelineBar.jsx';
-import AgentLog    from '../components/AgentLog.jsx';
-
-const SCORE_BARS = [
-  { key: 'accuracy',         label: 'Accuracy',          color: 'bg-emerald-400' },
-  { key: 'toneMatch',        label: 'Tone Match',        color: 'bg-indigo-400'  },
-  { key: 'formatCompliance', label: 'Format Compliance', color: 'bg-sky-400'     },
-  { key: 'hookStrength',     label: 'Hook Strength',     color: 'bg-orange-400'  },
-];
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Activity, TrendingUp, ArrowRight, Clock, Plus, Layout, Zap } from 'lucide-react';
+import ScoreCard from '../components/ScoreCard.jsx';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [metrics,     setMetrics]     = useState(null);
-  const [logs,        setLogs]        = useState([]);
-  const [evalScores,  setEvalScores]  = useState(null);
-  const [activeRunId, setActiveRunId] = useState(null);
-  const evtRef = useRef(null);
+  const [metrics, setMetrics] = useState(null);
+  const [runs, setRuns] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ── Fetch metrics + logs ───────────────────────────────────────────────────
   const refresh = async () => {
     try {
-      const [m, l, e] = await Promise.all([
+      const [m, r] = await Promise.all([
         axios.get('/api/metrics'),
-        axios.get('/api/agents/log'),
-        axios.get('/api/eval/scores'),
+        axios.get('/api/run/list'),
       ]);
       setMetrics(m.data);
-      setLogs(l.data);
-      setEvalScores(e.data);
-      if (m.data.activeRunId) setActiveRunId(m.data.activeRunId);
-    } catch (_) {}
+      setRuns(r.data.slice(0, 5)); // Only show last 5 runs on dashboard
+    } catch (_) {
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // ── SSE for live updates ───────────────────────────────────────────────────
   useEffect(() => {
     refresh();
-
-    evtRef.current = new EventSource('/api/events');
-    evtRef.current.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.type === 'stage') refresh();
-    };
-
-    const poll = setInterval(refresh, 3000);
-    return () => {
-      clearInterval(poll);
-      evtRef.current?.close();
-    };
+    const poll = setInterval(refresh, 5000);
+    return () => clearInterval(poll);
   }, []);
 
-  const isHITL = metrics?.reviewStatus === 'pending' && metrics?.pipelineStatus === 'review';
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto fade-in">
+    <div className="p-10 max-w-6xl mx-auto fade-in">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-10 flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-1">Multi-agent content pipeline monitor</p>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Welcome back</h1>
+          <p className="text-sm text-gray-400 mt-1 font-medium">Here's what's happening with your content studio.</p>
         </div>
         <button
           onClick={() => navigate('/new-run')}
-          className="flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+          className="flex items-center gap-2 bg-gray-900 text-white text-sm font-bold px-6 py-3.5 rounded-xl hover:bg-gray-800 hover:shadow-xl hover:shadow-gray-200 transition-all active:scale-[0.98]"
         >
+          <Plus size={16} />
           <span>New Run</span>
-          <ArrowRight size={14} />
         </button>
       </div>
 
-      {/* ── HITL Banner ───────────────────────────────────────────────────────── */}
-      {isHITL && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between fade-in">
-          <div className="flex items-center gap-3">
-            <AlertTriangle size={18} className="text-amber-600 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800">Human approval required</p>
-              <p className="text-xs text-amber-600 mt-0.5">
-                The Review Agent is waiting for you to approve or reject the draft.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate('/drafts')}
-            className="flex items-center gap-2 bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-amber-600 transition-colors flex-shrink-0 ml-4"
-          >
-            Review now <ArrowRight size={13} />
-          </button>
-        </div>
-      )}
-
       {/* ── Metric cards ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-6 mb-12">
         <ScoreCard
-          label="Total Runs"
+          label="Total Content Runs"
           value={metrics?.totalRuns ?? '—'}
           icon={Activity}
           color="teal"
           trend={12}
         />
         <ScoreCard
-          label="Avg Score"
+          label="Avg Quality Score"
           value={metrics?.avgScore ? `${metrics.avgScore}/10` : '—'}
           icon={TrendingUp}
           color="purple"
           trend={5}
         />
-        <ScoreCard
-          label="Guardrail Hits"
-          value={metrics?.guardrailHits ?? '—'}
-          sub="blocked briefs"
-          icon={ShieldAlert}
-          color="amber"
-        />
-        <ScoreCard
-          label="Web Searches"
-          value={metrics?.webSearches ?? '—'}
-          sub="by Research Agent"
-          icon={Search}
-          color="gray"
-        />
+        <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-3xl p-6 text-white shadow-lg shadow-violet-200 flex flex-col justify-between overflow-hidden relative group">
+          <Zap className="absolute -right-4 -top-4 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform duration-700" />
+          <div className="relative z-10">
+            <p className="text-[10px] font-black uppercase tracking-widest opacity-60">System Status</p>
+            <h4 className="text-xl font-bold mt-1">Studio Online</h4>
+          </div>
+          <div className="relative z-10 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-bold opacity-80 uppercase">All agents ready</span>
+          </div>
+        </div>
       </div>
 
-      {/* ── Pipeline bar ─────────────────────────────────────────────────────── */}
-      <div className="mb-6">
-        <PipelineBar
-          pipelineStatus={metrics?.pipelineStatus ?? 'idle'}
-          currentStep={metrics?.currentStep ?? -1}
-        />
-      </div>
-
-      {/* ── Log + Eval grid ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4">
-        {/* Agent log (2/3 width) */}
-        <div className="col-span-2">
-          <AgentLog logs={logs} />
+      {/* ── Recent Runs ──────────────────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-6 px-2">
+          <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Recent Activity</h3>
+          <button 
+            onClick={() => navigate('/runs')}
+            className="text-[11px] font-black text-violet-600 uppercase tracking-widest hover:text-violet-700 transition-colors flex items-center gap-1"
+          >
+            View All Runs <ArrowRight size={12} />
+          </button>
         </div>
 
-        {/* Eval scores (1/3 width) */}
-        <div className="bg-white border border-gray-100/80 rounded-2xl p-6 shadow-sm">
-          <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-6">
-            Last Run Scores
-          </h3>
-          {evalScores ? (
-            <div className="space-y-4">
-              {SCORE_BARS.map(({ key, label, color }) => {
-                const score = evalScores[key] ?? 0;
-                const pct   = (score / 10) * 100;
-                return (
-                  <div key={key}>
-                    <div className="flex justify-between items-baseline mb-1.5">
-                      <span className="text-xs text-gray-600 font-medium">{label}</span>
-                      <span className="text-xs font-bold text-gray-800">{score.toFixed(1)}</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${color} rounded-full transition-all duration-700`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              <div className="pt-3 mt-3 border-t border-gray-50 flex justify-between items-center">
-                <span className="text-xs font-semibold text-gray-500">Overall</span>
-                <span className="text-base font-bold text-gray-900">
-                  {evalScores.overall?.toFixed(1)}/10
-                </span>
-              </div>
+        <div className="space-y-4">
+          {loading ? (
+            <div className="py-12 text-center text-gray-400 text-sm">Loading activity...</div>
+          ) : runs.length === 0 ? (
+            <div className="bg-white border border-gray-100 rounded-3xl p-12 text-center">
+               <Layout size={48} className="mx-auto text-gray-100 mb-4" />
+               <p className="text-gray-400 font-medium text-sm">No runs yet. Start your first content pipeline!</p>
+               <button 
+                 onClick={() => navigate('/new-run')}
+                 className="mt-6 text-violet-600 font-bold text-xs uppercase tracking-widest hover:underline"
+               >
+                 Create New Run
+               </button>
             </div>
           ) : (
-            <p className="text-sm text-gray-400 text-center mt-8">No completed runs yet</p>
+            runs.map((run) => (
+              <div 
+                key={run.id || run.sessionId}
+                onClick={() => navigate(`/run/${run.id || run.sessionId}`)}
+                className="group bg-white border border-gray-100 rounded-2xl p-5 flex items-center gap-6 hover:shadow-xl hover:shadow-gray-100 hover:border-violet-100 transition-all cursor-pointer"
+              >
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                  run.pipelineStatus === 'done' ? 'bg-emerald-50 text-emerald-500' : 'bg-violet-50 text-violet-500'
+                }`}>
+                  {run.pipelineStatus === 'done' ? <Layout size={20} /> : <Clock size={20} className="animate-spin-slow" />}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="text-[10px] font-black text-gray-300 uppercase tracking-tight">#{run.id?.slice(-6) || run.sessionId?.slice(-6)}</span>
+                    <span className="text-[10px] font-bold text-gray-400">·</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{formatDate(run.createdAt)}</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-gray-900 truncate group-hover:text-violet-600 transition-colors">
+                    {run.topic || run.brief?.topic}
+                  </h4>
+                </div>
+
+                <div className="flex items-center gap-8 pr-4">
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Channel</p>
+                    <p className="text-xs font-bold text-gray-700 capitalize">{run.channel || run.brief?.channel}</p>
+                  </div>
+                  <div className="text-right w-24">
+                    <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-0.5">Status</p>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        run.pipelineStatus === 'done' ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
+                      }`} />
+                      <span className={`text-[10px] font-black uppercase ${
+                        run.pipelineStatus === 'done' ? 'text-emerald-600' : 'text-amber-600'
+                      }`}>
+                        {run.pipelineStatus || run.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-violet-50 group-hover:text-violet-500 transition-all">
+                    <ArrowRight size={14} />
+                  </div>
+                </div>
+              </div>
+            ))
           )}
         </div>
       </div>

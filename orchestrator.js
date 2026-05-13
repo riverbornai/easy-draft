@@ -61,16 +61,18 @@ function printPipelineComplete(session) {
  * runPipeline – executes the full 6-agent content production pipeline.
  *
  * @param {object} [options]
+ * @param {boolean} [options.skipMultiTurn=false]
  * @param {object} [options.preFilledBrief=null] – pre-filled brief from API
+ * @param {string} [options.sessionId=null] – optional existing session ID
  * @returns {Promise<object>}  final session
  */
-export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null } = {}) {
+export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null, sessionId = null } = {}) {
   let session;
 
   try {
     // ── Phase 1: Intake ──────────────────────────────────────────────────────
     printPhaseHeader(1, 'Intake Agent — Collecting Brief');
-    session = await runIntakeAgent({ skipMultiTurn, preFilledBrief });
+    session = await runIntakeAgent({ skipMultiTurn, preFilledBrief, sessionId });
     session = getSession(session.sessionId) || session; // Ensure freshest state
     addLog(session.sessionId, 'IntakeAgent', 'Brief collected and validated.');
     updateSession(session.sessionId, { pipelineStatus: 'research', currentStep: 1 });

@@ -16,7 +16,7 @@ const STATUS_DOT = {
 
 export default function AgentLog({ logs = [] }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 h-full shadow-sm">
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
           Live Agent Log
@@ -35,28 +35,33 @@ export default function AgentLog({ logs = [] }) {
           <p className="text-sm font-medium">Waiting for activity...</p>
         </div>
       ) : (
-        <div className="space-y-1 overflow-y-auto max-h-[340px] pr-2 custom-scrollbar">
+        <div className="space-y-1.5 overflow-y-auto max-h-[380px] pr-2 custom-scrollbar">
           {logs.map((log, i) => {
             const style = TYPE_STYLES[log.type] ?? TYPE_STYLES.agent;
             return (
-              <div key={log.id ?? i} className="flex items-start gap-4 py-3 px-3 rounded-xl border border-transparent hover:border-gray-100 hover:bg-gray-50/50 transition-all duration-200 fade-in group">
-                {/* Status dot */}
-                <div className="mt-1.5 flex-shrink-0">
-                  <span className={`block w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm ${STATUS_DOT[log.status] ?? 'bg-gray-200'}`} />
+              <div key={log.id ?? i} className="flex items-start gap-4 py-3.5 px-4 rounded-xl border border-transparent hover:border-gray-100 hover:bg-gray-50/50 transition-all duration-300 fade-in group">
+                {/* Timeline visual */}
+                <div className="mt-1.5 flex flex-col items-center flex-shrink-0 relative">
+                  <span className={`block w-2 h-2 rounded-full ring-4 ring-white shadow-sm ${STATUS_DOT[log.status] ?? style.dot}`} />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2.5 mb-1">
-                    <span className="text-xs font-bold text-gray-800">{log.agent}</span>
-                    <span className={`text-[9px] font-bold uppercase tracking-tight px-2 py-0.5 rounded-md ${style.label}`}>
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    {log.runId && (
+                      <span className="text-[9px] font-black text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                        {log.runId.slice(0,8)}
+                      </span>
+                    )}
+                    <span className="text-xs font-black text-gray-900 tracking-tight">{log.agent}</span>
+                    <span className={`text-[9px] font-black uppercase tracking-tight px-2 py-0.5 rounded-md ${style.label}`}>
                       {log.type}
                     </span>
                   </div>
-                  <p className="text-[13px] text-gray-600 leading-snug truncate group-hover:text-gray-900 transition-colors">{log.msg}</p>
+                  <p className="text-[13px] text-gray-600 leading-relaxed font-medium group-hover:text-gray-900 transition-colors">{log.msg}</p>
                 </div>
 
                 <div className="flex-shrink-0 text-right">
-                  <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded-lg border border-gray-100 font-mono group-hover:bg-white group-hover:border-gray-200 transition-all">
+                  <span className="text-[10px] font-black text-gray-400 bg-gray-50/50 px-2 py-1 rounded-lg border border-gray-100/50 font-mono group-hover:bg-white group-hover:border-gray-200 transition-all">
                     {log.ts}
                   </span>
                 </div>

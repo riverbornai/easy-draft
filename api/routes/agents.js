@@ -11,17 +11,26 @@ const router = Router();
 
 // ── GET /api/agents/log ───────────────────────────────────────────────────────
 router.get('/agents/log', (req, res) => {
-  // Merge static mock log with any live run logs
-  const liveLogs = [...activeRuns.values()]
-    .flatMap(r => r.log ?? [])
-    .sort((a, b) => b.id - a.id)
-    .slice(0, 10);
+  const { runId } = req.query;
 
-  const combined = liveLogs.length > 0
-    ? liveLogs
-    : mockAgentLog.slice().reverse(); // latest first
+  // Gather logs from all active runs
+  let allLogs = [...activeRuns.values()].flatMap(r => 
+    (r.log ?? []).map(l => ({ ...l, runId: r.sessionId, topic: r.topic || r.brief?.topic }))
+  );
 
-  res.json(combined);
+  // If no live runs, use mock logs for demonstration
+  if (allLogs.length === 0) {
+    allLogs = mockAgentLog.map((l, i) => ({ ...l, runId: `mock_${i}`, topic: 'Demo Run' }));
+  }
+
+  if (runId && runId !== 'All') {
+    allLogs = allLogs.filter(l => l.runId === runId);
+  }
+
+  // Sort latest first
+  allLogs.sort((a, b) => b.id - a.id);
+
+  res.json(allLogs);
 });
 
 // ── GET /api/sandbox/factsheet ────────────────────────────────────────────────

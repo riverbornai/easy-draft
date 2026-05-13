@@ -16,6 +16,7 @@ const XIcon = ({ size = 16, className = "" }) => (
 );
 
 const TONES    = ['professional', 'casual', 'thought-leader', 'inspirational', 'educational', 'witty'];
+const AUDIENCES = ['Tech Leads', 'SaaS Founders', 'Marketing Managers', 'Content Creators', 'HR Professionals', 'Software Engineers', 'Product Managers'];
 const CHANNELS = [
   { id: 'linkedin', label: 'LinkedIn', icon: Linkedin, color: 'text-[#0077B5]' },
   { id: 'facebook', label: 'Facebook', icon: Facebook, color: 'text-[#1877F2]' },
@@ -27,26 +28,50 @@ const CHANNELS = [
 export default function NewRun() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    topic: '', tone: 'professional', audience: '', channel: 'linkedin', angle: '',
+    topic: '', context: '', tone: 'professional', audience: [], channel: 'linkedin', angle: '',
   });
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const toggleAudience = (aud) => {
+    set('audience', form.audience.includes(aud) 
+      ? form.audience.filter(a => a !== aud) 
+      : [...form.audience, aud]
+    );
+  };
+
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.topic.trim() || !form.audience.trim()) {
-      setError('Topic and audience are required.');
+    if (!form.topic.trim() || form.audience.length === 0) {
+      setError('Topic and at least one audience type are required.');
       return;
     }
     setError('');
     setLoading(true);
     try {
-      await axios.post('/api/run/start', form);
-      navigate('/');
+      const response = await axios.post('/api/run/start', {
+        ...form,
+        audience: form.audience.join(', ') // Send as comma-separated string for backend compatibility
+      });
+      console.log('DEBUG - API Full Response:', response);
+      const data = response.data;
+      const runId = data.runId || data.sessionId || data.id || (typeof data === 'string' ? data : null);
+      
+      if (runId && typeof runId === 'string') {
+        console.log('DEBUG - Navigating to:', runId);
+        navigate(`/run/${runId}`);
+      } else {
+        console.error('DEBUG - Invalid Response Body:', data);
+        alert('Server Response Error: ' + JSON.stringify(data));
+        throw new Error('Server did not return a valid Run ID.');
+      }
     } catch (err) {
-      setError(err.response?.data?.error ?? 'Failed to start pipeline.');
+      console.error('Submission error:', err);
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to start pipeline.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -66,11 +91,25 @@ export default function NewRun() {
           <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2.5 ml-1">
             Topic <span className="text-red-400">*</span>
           </label>
-          <textarea
-            rows={4}
+          <input
+            type="text"
             value={form.topic}
             onChange={e => set('topic', e.target.value)}
             placeholder='e.g. "Future of AI in Software Engineering"'
+            className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-5 py-4 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:bg-white focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all duration-200"
+          />
+        </div>
+
+        {/* Context */}
+        <div>
+          <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2.5 ml-1">
+            Context <span className="text-gray-300 font-normal normal-case ml-1">(additional details for the AI)</span>
+          </label>
+          <textarea
+            rows={4}
+            value={form.context}
+            onChange={e => set('context', e.target.value)}
+            placeholder='Provide background, specific points to cover, or source materials...'
             className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-5 py-4 text-sm text-gray-900 placeholder-gray-300 resize-none focus:outline-none focus:bg-white focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all duration-200"
           />
         </div>
@@ -90,18 +129,61 @@ export default function NewRun() {
             </select>
           </div>
 
-          {/* Audience */}
+          {/* Audience - Custom Multi-select Tags */}
           <div>
             <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2.5 ml-1">
               Target Audience <span className="text-red-400">*</span>
             </label>
-            <input
-              type="text"
-              value={form.audience}
-              onChange={e => set('audience', e.target.value)}
-              placeholder='e.g. "Tech Leads"'
-              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-5 py-3 text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:bg-white focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all duration-200"
-            />
+            <div className="relative">
+              <div 
+                tabIndex="0"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-3 py-2 min-h-[46px] flex flex-wrap gap-1.5 focus:bg-white focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all duration-200 cursor-pointer relative pr-10"
+              >
+                {form.audience.length === 0 ? (
+                  <span className="text-gray-300 text-sm py-1 px-2">Select audience types...</span>
+                ) : (
+                  form.audience.map(aud => (
+                    <span key={aud} className="bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1 animate-in zoom-in-95 duration-150">
+                      {aud}
+                      <button 
+                        type="button" 
+                        onClick={(e) => { e.stopPropagation(); toggleAudience(aud); }} 
+                        className="hover:text-violet-900 ml-1"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))
+                )}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none">
+                  <ArrowRight size={14} className="rotate-90" />
+                </div>
+              </div>
+              
+              {dropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
+                  <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-2 fade-in">
+                    {AUDIENCES.map(aud => (
+                      <button
+                        key={aud}
+                        type="button"
+                        onClick={() => { toggleAudience(aud); }}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                          form.audience.includes(aud) ? 'bg-violet-50 text-violet-700' : 'text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          {aud}
+                          {form.audience.includes(aud) && <div className="w-1.5 h-1.5 rounded-full bg-violet-500" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 

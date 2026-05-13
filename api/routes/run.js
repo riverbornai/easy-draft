@@ -19,41 +19,59 @@ const router = Router();
 
 import { runPipeline } from '../../orchestrator.js';
 
+import { createSession, updateSession } from '../../session.js';
+
 // ── POST /api/run/start ───────────────────────────────────────────────────────
 router.post('/start', async (req, res) => {
-  const { topic, tone, audience, channel, angle } = req.body;
-
-  // We respond immediately to the frontend
-  res.status(201).json({ message: 'Pipeline started' });
-
-  // Run the real pipeline in the background
   try {
-    const session = await runPipeline({
-       preFilledBrief: { topic, tone, audience, channel, angle }
-    });
+    const { topic, context, tone, audience, channel, angle } = req.body;
+
+    // Create session first so we can return the ID
+    const session = createSession();
+    console.log('[API] Created session:', session.sessionId);
     
-    // Update activeRuns so the polling/SSE picks up the final state
     activeRuns.set(session.sessionId, session);
-    
-    // Add to historical runs for leaderboard
-    const hist = historicalRuns.find(r => r.id === session.sessionId);
-    if (!hist) {
-       historicalRuns.push({
-         id:             session.sessionId,
-         topic:          session.brief.topic,
-         channel:        session.brief.channel,
-         winner:         session.activeModel || 'gpt4o',
-         approvedDraft:  session.approvedDraft,
-         gpt4oDraft:     session.gpt4oDraft,
-         claudeDraft:    session.claudeDraft,
-         gpt4oScore:     session.evalScores?.overall,
-         status:         'done',
-         createdAt:      session.createdAt || new Date().toISOString(),
-         publishedPath:  session.publishedPath
-       });
-    }
+
+    // We respond immediately to the frontend with the runId
+    res.status(201).json({ 
+      id: session.sessionId,
+      runId: session.sessionId,
+      sessionId: session.sessionId
+    });
+
+    // Run the real pipeline in the background
+    // (Note: This runs outside the request/response cycle)
+    runPipeline({
+       preFilledBrief: { topic, context, tone, audience, channel, angle },
+       sessionId: session.sessionId
+    }).then(finalSession => {
+      // Update activeRuns so the polling/SSE picks up the final state
+      activeRuns.set(finalSession.sessionId, finalSession);
+      
+      // Add to historical runs for leaderboard
+      const hist = historicalRuns.find(r => r.id === finalSession.sessionId);
+      if (!hist) {
+         historicalRuns.push({
+           id:             finalSession.sessionId,
+           topic:          finalSession.brief.topic,
+           channel:        finalSession.brief.channel,
+           winner:         finalSession.activeModel || 'gpt4o',
+           approvedDraft:  finalSession.approvedDraft,
+           gpt4oDraft:     finalSession.gpt4oDraft,
+           claudeDraft:    finalSession.claudeDraft,
+           gpt4oScore:     finalSession.evalScores?.overall,
+           status:         'done',
+           createdAt:      finalSession.createdAt || new Date().toISOString(),
+           publishedPath:  finalSession.publishedPath
+         });
+      }
+    }).catch(err => {
+      console.error('Background pipeline error:', err);
+      updateSession(session.sessionId, { pipelineStatus: 'error' });
+    });
   } catch (err) {
-    console.error('Background pipeline error:', err);
+    console.error('Route error:', err);
+    res.status(500).json({ error: 'Internal Server Error', message: err.message });
   }
 });
 

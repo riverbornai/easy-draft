@@ -4,10 +4,10 @@ import axios                           from 'axios';
 import Sidebar                         from './components/Sidebar.jsx';
 import Dashboard                       from './pages/Dashboard.jsx';
 import NewRun                          from './pages/NewRun.jsx';
-import Drafts                          from './pages/Drafts.jsx';
+import RunDetail                      from './pages/RunDetail.jsx';
 import Eval                            from './pages/Eval.jsx';
 import TraceLogs                       from './pages/TraceLogs.jsx';
-import History                         from './pages/History.jsx';
+import Runs                            from './pages/Runs.jsx';
 
 export default function App() {
   const [apiStatus, setApiStatus] = useState('checking');
@@ -28,10 +28,10 @@ export default function App() {
           <Routes>
             <Route path="/"           element={<Dashboard />}  />
             <Route path="/new-run"    element={<NewRun />}     />
-            <Route path="/drafts"     element={<Drafts />}     />
+            <Route path="/run/:id"    element={<RunDetail />}  />
             <Route path="/eval"       element={<Eval />}       />
             <Route path="/trace-logs" element={<TraceLogs />}  />
-            <Route path="/history"    element={<History />}    />
+            <Route path="/runs"       element={<Runs />}       />
           </Routes>
         </main>
       </div>

@@ -26,6 +26,7 @@ import {
   updateSession,
   appendHistory,
   logError,
+  getSession,
 } from '../session.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -83,7 +84,7 @@ async function handleSessionUpdate(session, userMessage) {
 Current brief: ${currentBrief}
 
 The user wants to change something. Extract ONLY the fields that should change.
-Valid fields: topic, tone, audience, channel (linkedin/facebook/blog/xthread/email), angle.
+Valid fields: topic, context, tone, audience, channel (linkedin/facebook/blog/xthread/email), angle.
 Respond ONLY with valid JSON, e.g.: { "tone": "casual" }
 If the message is not about changing the brief, return: {}`,
       },
@@ -134,14 +135,15 @@ If the message is not about changing the brief, return: {}`,
  * @param {object} [options]
  * @param {boolean} [options.skipMultiTurn=false]  – skip the follow-up loop (for testing)
  * @param {object} [options.preFilledBrief=null] – pre-collected brief from Web UI
+ * @param {string} [options.sessionId=null] – optional existing session ID
  * @returns {Promise<object>} final session
  */
-export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = null } = {}) {
+export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = null, sessionId = null } = {}) {
   printBanner();
   console.log(chalk.dim('─'.repeat(60)));
 
   // ── Step 1: Create session ─────────────────────────────────────────────────
-  const session = createSession();
+  const session = sessionId ? (getSession(sessionId) || createSession(sessionId)) : createSession();
   updateSession(session.sessionId, { pipelineStatus: 'intake', currentStep: 0 });
 
   console.log(chalk.dim(`  Session ID: ${session.sessionId}\n`));
