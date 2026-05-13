@@ -38,11 +38,12 @@ GUIDELINES:
 - Angle: ${brief.angle || 'Standard professional'}
 - Use the key points and supporting facts from the research.
 - Ensure the content is engaging and has a strong hook.
+- CRITICAL: DO NOT use any emojis, icons, or special visual symbols in the text. Keep it clean and text-only.
 
 ${feedback ? `CRITICAL FEEDBACK FROM PREVIOUS DRAFT (FIX THESE): ${feedback}` : ''}
 `;
 
-  const userPrompt = `Write the content draft now. Return only the content, no conversational filler.`;
+  const userPrompt = `Write the content draft now. Return only the content, no conversational filler. DO NOT include any emojis or icons.`;
 
   const response = await openai.chat.completions.create({
     model: model === 'gpt4o' ? 'gpt-4o' : 'gpt-4o-mini', // Simulating dual models

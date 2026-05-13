@@ -83,7 +83,7 @@ async function handleSessionUpdate(session, userMessage) {
 Current brief: ${currentBrief}
 
 The user wants to change something. Extract ONLY the fields that should change.
-Valid fields: topic, tone, audience, channel (linkedin/blog/xthread/email), angle.
+Valid fields: topic, tone, audience, channel (linkedin/facebook/blog/xthread/email), angle.
 Respond ONLY with valid JSON, e.g.: { "tone": "casual" }
 If the message is not about changing the brief, return: {}`,
       },
