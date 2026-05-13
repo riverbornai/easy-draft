@@ -3,8 +3,6 @@ import { useState, useEffect }         from 'react';
 import axios                           from 'axios';
 import Sidebar                         from './components/Sidebar.jsx';
 import Dashboard                       from './pages/Dashboard.jsx';
-import NewRun                          from './pages/NewRun.jsx';
-import RunDetail                      from './pages/RunDetail.jsx';
 import Eval                            from './pages/Eval.jsx';
 import TraceLogs                       from './pages/TraceLogs.jsx';
 import Runs                            from './pages/Runs.jsx';
@@ -27,11 +25,11 @@ export default function App() {
         <main className="ml-56 flex-1 min-h-screen">
           <Routes>
             <Route path="/"           element={<Dashboard />}  />
-            <Route path="/new-run"    element={<NewRun />}     />
-            <Route path="/run/:id"    element={<RunDetail />}  />
             <Route path="/eval"       element={<Eval />}       />
             <Route path="/trace-logs" element={<TraceLogs />}  />
             <Route path="/runs"       element={<Runs />}       />
+            <Route path="/runs/new"   element={<Runs />}       />
+            <Route path="/runs/:id"   element={<Runs />}       />
           </Routes>
         </main>
       </div>
