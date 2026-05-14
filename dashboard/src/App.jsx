@@ -18,11 +18,11 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="flex min-h-screen bg-[#fafafa]">
+      <div className="flex min-h-screen bg-white">
         <Sidebar apiStatus={apiStatus} />
 
         {/* Main — offset by sidebar width */}
-        <main className="ml-56 flex-1 min-h-screen">
+        <main className="ml-64 flex-1 min-h-screen">
           <Routes>
             <Route path="/"           element={<Dashboard />}  />
             <Route path="/eval"       element={<Eval />}       />
