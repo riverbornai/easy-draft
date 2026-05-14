@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Trophy } from 'lucide-react';
+import { Trophy, BarChart3, ListOrdered } from 'lucide-react';
 
 function MiniBar({ score, color }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-[#E8EDE6] rounded-full overflow-hidden">
         <div className={`h-full ${color} rounded-full`} style={{ width: `${(score / 10) * 100}%` }} />
       </div>
-      <span className="text-xs font-semibold text-gray-700 w-6 text-right">{score?.toFixed(1)}</span>
+      <span className="text-[10px] font-black text-[#0D2B22] w-6 text-right">{score?.toFixed(1)}</span>
     </div>
   );
 }
@@ -17,93 +17,132 @@ export default function Eval() {
   const [leaderboard, setLeaderboard] = useState(null);
 
   useEffect(() => {
-    axios.get('/api/eval/leaderboard').then(r => setLeaderboard(r.data)).catch(() => {});
+    axios.get('/api/eval/leaderboard').then(r => setLeaderboard(r.data)).catch(() => { });
   }, []);
 
-  const runs   = leaderboard?.runs ?? [];
+  const runs = leaderboard?.runs ?? [];
   const winner = leaderboard?.overallWinner;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto fade-in">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Eval</h1>
-        <p className="text-sm text-gray-400 mt-1">Score comparison — GPT-4o vs Claude</p>
+    <div className="p-12 max-w-[70rem] mx-auto fade-in">
+      <div className="mb-10">
+        <h1 className="text-3xl font-black text-[#0D2B22] flex items-center gap-3 tracking-tight">
+          <BarChart3 size={28} className="text-[#0D2B22]" />
+          Intelligence Analysis
+        </h1>
+        <p className="text-xs text-[#1A4435] font-black uppercase tracking-[0.2em] mt-2">Historical Performance Benchmarks</p>
       </div>
 
       {winner && (
-        <div className={`mb-6 flex items-center gap-3 px-5 py-4 rounded-xl border fade-in ${winner === 'gpt4o' ? 'bg-teal-50 border-teal-200' : 'bg-violet-50 border-violet-200'}`}>
-          <Trophy size={20} className={winner === 'gpt4o' ? 'text-teal-500' : 'text-violet-500'} />
-          <div>
-            <p className={`text-sm font-bold ${winner === 'gpt4o' ? 'text-teal-800' : 'text-violet-800'}`}>
-              {winner === 'gpt4o' ? 'GPT-4o leads overall' : 'Claude leads overall'}
+        <div className="mb-12 flex items-center gap-6 px-10 py-8 rounded-[2.5rem] bg-white border border-[#E8EDE6] shadow-2xl shadow-[#0D2B22]/5 fade-in relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[#F2FFEE] rounded-full -mr-24 -mt-24 opacity-40 group-hover:scale-110 transition-transform duration-1000" />
+          <div className="p-5 rounded-2xl bg-[#0D2B22] text-[#D4F53C] shadow-lg z-10">
+            <Trophy size={32} />
+          </div>
+          <div className="z-10">
+            <p className="text-2xl font-black text-[#0D2B22] tracking-tighter">
+              {winner === 'gpt4o' ? 'GPT-4o leads the Studio' : 'Claude leads the Studio'}
             </p>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {leaderboard?.gpt4oWins} GPT-4o wins · {leaderboard?.claudeWins} Claude wins
-            </p>
+            <div className="flex items-center gap-3 mt-4">
+              <span className="text-[10px] text-[#0D2B22] font-black uppercase tracking-[0.2em] bg-[#D4F53C] px-4 py-2 rounded-xl border border-[#D4F53C]">
+                {leaderboard?.gpt4oWins} Victories
+              </span>
+              <span className="text-[10px] text-[#D4F53C] font-black uppercase tracking-[0.2em] bg-[#0D2B22] px-4 py-2 rounded-xl border border-[#0D2B22]">
+                {leaderboard?.claudeWins} Victories
+              </span>
+            </div>
           </div>
         </div>
       )}
 
       {/* Bar chart */}
-      <div className="bg-white border border-gray-100 rounded-xl p-6 mb-5">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-5">Score Comparison</h3>
-        <div className="flex items-end gap-3 h-40 overflow-x-auto pb-2">
-          {runs.slice(0,10).reverse().map((run, i) => (
-            <div key={`${run.id}-${i}`} className="flex flex-col items-center gap-1 flex-shrink-0 min-w-[60px]">
-              <div className="flex items-end gap-1 h-32">
-                <div className="flex flex-col justify-end">
-                  <span className="text-[9px] text-teal-600 text-center mb-0.5">{run.gpt4oScore?.toFixed(1)}</span>
-                  <div className="w-5 bg-teal-400 rounded-t" style={{ height: `${((run.gpt4oScore ?? 0)/10)*112}px` }} />
+      <div className="bg-white border border-[#E8EDE6] rounded-[2.5rem] p-10 mb-10 shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500">
+          <BarChart3 size={140} />
+        </div>
+        <h3 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-12">Performance Trajectory</h3>
+        <div className="flex items-end gap-6 h-56 overflow-x-auto pb-6 custom-scrollbar">
+          {runs.slice(0, 12).reverse().map((run, i) => (
+            <div key={`${run.id}-${i}`} className="flex flex-col items-center gap-3 flex-shrink-0 min-w-[80px] group/bar">
+              <div className="flex items-end gap-2 h-40">
+                <div className="flex flex-col justify-end group/gpt">
+                  <span className="text-[9px] font-black text-[#1A4435] text-center mb-1 opacity-0 group-hover/bar:opacity-100 transition-opacity">{run.gpt4oScore?.toFixed(1)}</span>
+                  <div className="w-7 bg-[#1A4435] rounded-t-xl transition-all group-hover/bar:brightness-110" style={{ height: `${((run.gpt4oScore ?? 0) / 10) * 140}px` }} />
                 </div>
-                <div className="flex flex-col justify-end">
-                  <span className="text-[9px] text-violet-600 text-center mb-0.5">{run.claudeScore?.toFixed(1)}</span>
-                  <div className="w-5 bg-violet-400 rounded-t" style={{ height: `${((run.claudeScore ?? 0)/10)*112}px` }} />
+                <div className="flex flex-col justify-end group/claude">
+                  <span className="text-[9px] font-black text-[#0D2B22] text-center mb-1 opacity-0 group-hover/bar:opacity-100 transition-opacity">{run.claudeScore?.toFixed(1)}</span>
+                  <div className="w-7 bg-[#0D2B22] rounded-t-xl transition-all group-hover/bar:brightness-125" style={{ height: `${((run.claudeScore ?? 0) / 10) * 140}px` }} />
                 </div>
               </div>
-              <span className="text-[9px] text-gray-400">#{i+1}</span>
+              <span className="text-[9px] font-black text-[#1A4435]/40 uppercase tracking-widest">Run {runs.length - (runs.slice(0, 12).length - 1 - i)}</span>
             </div>
           ))}
-          {runs.length === 0 && <div className="flex-1 flex items-center justify-center text-gray-300 text-sm">No data</div>}
+          {runs.length === 0 && <div className="flex-1 flex items-center justify-center text-[#1A4435]/30 text-sm font-black uppercase tracking-widest py-20">No evaluation data available</div>}
         </div>
-        <div className="flex gap-4 mt-3 pt-3 border-t border-gray-50">
-          <span className="flex items-center gap-1.5 text-xs text-gray-500"><span className="w-3 h-3 bg-teal-400 rounded-sm inline-block"/>GPT-4o</span>
-          <span className="flex items-center gap-1.5 text-xs text-gray-500"><span className="w-3 h-3 bg-violet-400 rounded-sm inline-block"/>Claude</span>
+        <div className="flex gap-8 mt-8 pt-8 border-t border-[#E8EDE6]">
+          <span className="flex items-center gap-3 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">
+            <span className="w-4 h-4 bg-[#1A4435] rounded-lg shadow-md" />GPT-4o
+          </span>
+          <span className="flex items-center gap-3 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">
+            <span className="w-4 h-4 bg-[#0D2B22] rounded-lg shadow-md" />Claude
+          </span>
         </div>
       </div>
 
       {/* Leaderboard */}
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Leaderboard</h3>
+      <div className="bg-white border border-[#E8EDE6] rounded-[2.5rem] overflow-hidden shadow-sm">
+        <div className="px-10 py-8 border-b border-[#E8EDE6] flex items-center justify-between bg-[#F2FFEE]/30">
+          <h3 className="text-[12px] font-black text-[#0D2B22] uppercase tracking-[0.2em] flex items-center gap-3">
+            <ListOrdered size={16} />
+            Intelligence Leaderboard
+          </h3>
+          <span className="text-[10px] font-black text-[#1A4435] uppercase tracking-widest bg-white px-4 py-2 rounded-xl border border-[#E8EDE6] shadow-sm">
+            {runs.length} Sessions
+          </span>
         </div>
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              {['#','Topic','Channel','Winner','GPT-4o','Claude'].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {runs.length === 0
-              ? <tr><td colSpan={6} className="text-center py-8 text-gray-400 text-sm">No completed runs</td></tr>
-              : runs.map((run, i) => (
-                <tr key={`${run.id}-${i}`} className="hover:bg-gray-50/50">
-                  <td className="px-4 py-3 text-gray-400 text-xs font-mono">{i+1}</td>
-                  <td className="px-3 py-3"><p className="text-gray-800 text-xs font-medium truncate max-w-[180px]">{run.topic}</p></td>
-                  <td className="px-3 py-3"><span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">{run.channel}</span></td>
-                  <td className="px-3 py-3">
-                    {run.winner
-                      ? <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${run.winner==='gpt4o'?'bg-teal-50 text-teal-600':'bg-violet-50 text-violet-600'}`}>{run.winner==='gpt4o'?'GPT-4o':'Claude'}</span>
-                      : <span className="text-gray-300 text-xs">—</span>}
-                  </td>
-                  <td className="px-3 py-3 w-32"><MiniBar score={run.gpt4oScore} color="bg-teal-400"/></td>
-                  <td className="px-3 py-3 w-32"><MiniBar score={run.claudeScore} color="bg-violet-400"/></td>
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-[#E8EDE6]/20 border-b border-[#E8EDE6]">
+                {['#', 'Session Topic', 'Platform', 'Winner', 'GPT-4o', 'Claude'].map(h => (
+                  <th key={h} className="text-left px-8 py-5 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E8EDE6]/50">
+              {runs.length === 0
+                ? <tr><td colSpan={6} className="text-center py-20 text-[#1A4435]/40 text-xs font-black uppercase tracking-[0.2em]">No session data available</td></tr>
+                : runs.map((run, i) => (
+                  <tr key={`${run.id}-${i}`} className="hover:bg-[#F2FFEE]/20 transition-all duration-300 group">
+                    <td className="px-8 py-5 text-[#1A4435]/30 text-[10px] font-black">{i + 1}</td>
+                    <td className="px-8 py-5">
+                      <p className="text-[#0D2B22] text-[13px] font-black truncate max-w-[280px] group-hover:translate-x-1 transition-transform">
+                        {run.topic}
+                      </p>
+                    </td>
+                    <td className="px-8 py-5">
+                      <span className="text-[10px] font-black bg-white text-[#1A4435] px-3 py-1.5 rounded-xl uppercase tracking-wider border border-[#E8EDE6] shadow-sm">
+                        {run.channel}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5">
+                      {run.winner
+                        ? <span className={`text-[10px] font-black px-4 py-2 rounded-xl border uppercase tracking-widest transition-all ${run.winner === 'gpt4o'
+                          ? 'bg-[#1A4435] text-[#D4F53C] border-[#1A4435] shadow-lg shadow-[#1A4435]/10'
+                          : 'bg-[#0D2B22] text-[#D4F53C] border-[#0D2B22] shadow-lg shadow-[#0D2B22]/10'
+                          }`}>
+                          {run.winner === 'gpt4o' ? 'GPT-4o' : 'Claude'}
+                        </span>
+                        : <span className="text-[#E8EDE6] text-xs">—</span>}
+                    </td>
+                    <td className="px-8 py-5 w-48"><MiniBar score={run.gpt4oScore} color="bg-[#1A4435]" /></td>
+                    <td className="px-8 py-5 w-48"><MiniBar score={run.claudeScore} color="bg-[#0D2B22]" /></td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
