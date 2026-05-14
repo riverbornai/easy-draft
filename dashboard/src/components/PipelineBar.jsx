@@ -20,14 +20,14 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 
   const isDone    = pipelineStatus === 'done';
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-5">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pipeline</h3>
-        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-          isDone                     ? 'bg-teal-50 text-teal-600'  :
-          pipelineStatus === 'idle'  ? 'bg-gray-50 text-gray-400'  :
-          pipelineStatus === 'error' ? 'bg-red-50 text-red-600'    :
-                                       'bg-violet-50 text-violet-600'
+    <div className="bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl p-6">
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">Workflow Progress</h3>
+        <span className={`text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1 rounded-md border shadow-sm transition-all duration-500 ${
+          isDone                     ? 'bg-[#0D2B22] border-[#0D2B22] text-[#D4F53C]'  :
+          pipelineStatus === 'idle'  ? 'bg-white border-[#E8EDE6] text-[#1A4435]'  :
+          pipelineStatus === 'error' ? 'bg-red-50 border-red-100 text-red-600'    :
+                                       'bg-[#0D2B22] border-[#0D2B22] text-[#D4F53C]'
         }`}>
           {pipelineStatus === 'idle' ? 'Idle' : pipelineStatus.replace(/-/g, ' ')}
         </span>
@@ -37,29 +37,28 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 
         {STEPS.map((step, i) => {
           const done   = isDone || i < activeIdx;
           const active = !isDone && i === activeIdx;
-          const pending = !done && !active;
 
           return (
-            <div key={step.key} className="flex items-center flex-1 min-w-0">
+            <div key={step.key} className="flex items-center flex-1 min-w-0 last:flex-none">
               {/* Node */}
-              <div className="flex flex-col items-center flex-shrink-0">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-300 ${
-                  done    ? 'bg-teal-500 border-teal-500'    :
-                  active  ? 'bg-violet-500 border-violet-500' :
-                            'bg-white border-gray-200'
+              <div className="flex flex-col items-center flex-shrink-0 relative z-10">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${
+                  done    ? 'bg-[#0D2B22] border-[#0D2B22] scale-110 shadow-lg' :
+                  active  ? 'bg-[#0D2B22] border-[#0D2B22] scale-110 shadow-lg' :
+                            'bg-white border-[#E8EDE6]'
                 }`}>
                   {done ? (
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <svg className="w-4 h-4 text-[#D4F53C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   ) : active ? (
-                    <span className="w-2 h-2 rounded-full bg-white pulse-dot" />
+                    <span className="w-2 h-2 rounded-full bg-[#D4F53C] animate-pulse shadow-[0_0_8px_rgba(212,245,60,0.8)]" />
                   ) : (
-                    <span className="w-2 h-2 rounded-full bg-gray-300" />
+                    <span className="text-[10px] font-black text-[#1A4435]/30">{i + 1}</span>
                   )}
                 </div>
-                <span className={`text-[10px] mt-1.5 font-medium whitespace-nowrap ${
-                  done ? 'text-teal-600' : active ? 'text-violet-600' : 'text-gray-400'
+                <span className={`text-[9px] mt-3 font-black uppercase tracking-widest whitespace-nowrap transition-colors duration-300 ${
+                  done || active ? 'text-[#0D2B22]' : 'text-[#1A4435]/40'
                 }`}>
                   {step.label}
                 </span>
@@ -67,9 +66,13 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 
 
               {/* Connector */}
               {i < STEPS.length - 1 && (
-                <div className={`h-px flex-1 mx-1 transition-all duration-500 ${
-                  done ? 'bg-teal-400' : 'bg-gray-200'
-                }`} />
+                <div className={`h-[2px] flex-1 mx-[-2px] transition-all duration-700 relative overflow-hidden ${
+                  done ? 'bg-[#0D2B22]' : 'bg-[#E8EDE6]'
+                }`}>
+                  {active && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#D4F53C] to-transparent animate-shimmer" />
+                  )}
+                </div>
               )}
             </div>
           );
