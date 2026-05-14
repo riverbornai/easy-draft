@@ -75,7 +75,7 @@ export default function NewRunForm() {
   };
 
   return (
-    <div className="fade-in max-w-3xl mx-auto pt-6 pb-24">
+    <div className="fade-in max-w-3xl mx-auto pt-6">
       <div className="mb-8">
         <h1 className="text-3xl font-black text-[#0D2B22] leading-tight tracking-tight">Create New Run</h1>
         <p className="text-sm text-[#1A4435] font-semibold uppercase tracking-wider mt-2">Define your content brief to start the automated pipeline</p>
@@ -93,7 +93,7 @@ export default function NewRunForm() {
             value={form.topic}
             onChange={e => set('topic', e.target.value)}
             placeholder='e.g. "Future of AI in Software Engineering"'
-            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300"
+            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 h-[58px]"
           />
         </div>
 
@@ -119,7 +119,7 @@ export default function NewRunForm() {
               <select
                 value={form.tone}
                 onChange={e => set('tone', e.target.value)}
-                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer appearance-none font-black uppercase text-[10px] tracking-widest"
+                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer appearance-none font-black uppercase text-[10px] tracking-widest h-[58px]"
               >
                 {TONES.map(t => (
                   <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
@@ -140,7 +140,7 @@ export default function NewRunForm() {
               <div 
                 tabIndex="0"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-3 min-h-[58px] flex flex-wrap gap-2 focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer relative pr-12 items-center"
+                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 min-h-[58px] flex flex-wrap gap-2 focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer relative pr-12 items-center"
               >
                 {form.audience.length === 0 ? (
                   <span className="text-[#1A4435] text-sm px-2 font-medium">Select target audience...</span>
@@ -225,7 +225,7 @@ export default function NewRunForm() {
             value={form.angle}
             onChange={e => set('angle', e.target.value)}
             placeholder='e.g. "Focus on ROI over features"'
-            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300"
+            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 h-[58px]"
           />
         </div>
 
