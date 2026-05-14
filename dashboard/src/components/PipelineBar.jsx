@@ -33,15 +33,15 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 
         </span>
       </div>
 
-      <div className="flex items-center gap-0">
+      <div className="flex items-start gap-0 pb-8">
         {STEPS.map((step, i) => {
           const done   = isDone || i < activeIdx;
           const active = !isDone && i === activeIdx;
 
           return (
-            <div key={step.key} className="flex items-center flex-1 min-w-0 last:flex-none">
+            <div key={step.key} className="flex items-start flex-1 min-w-0 last:flex-none">
               {/* Node */}
-              <div className="flex flex-col items-center flex-shrink-0 relative z-10">
+              <div className="flex flex-col items-center flex-shrink-0 relative z-10 w-9">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${
                   done    ? 'bg-[#0D2B22] border-[#0D2B22] scale-110 shadow-lg' :
                   active  ? 'bg-[#0D2B22] border-[#0D2B22] scale-110 shadow-lg' :
@@ -57,7 +57,7 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 
                     <span className="text-[10px] font-black text-[#1A4435]/30">{i + 1}</span>
                   )}
                 </div>
-                <span className={`text-[9px] mt-3 font-black uppercase tracking-widest whitespace-nowrap transition-colors duration-300 ${
+                <span className={`text-[9px] absolute top-12 left-1/2 -translate-x-1/2 font-black uppercase tracking-widest whitespace-nowrap transition-colors duration-300 ${
                   done || active ? 'text-[#0D2B22]' : 'text-[#1A4435]/40'
                 }`}>
                   {step.label}
@@ -66,7 +66,7 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 
 
               {/* Connector */}
               {i < STEPS.length - 1 && (
-                <div className={`h-[2px] flex-1 mx-[-2px] transition-all duration-700 relative overflow-hidden ${
+                <div className={`h-[2px] flex-1 mx-[-2px] mt-[17px] transition-all duration-700 relative overflow-hidden ${
                   done ? 'bg-[#0D2B22]' : 'bg-[#E8EDE6]'
                 }`}>
                   {active && (
