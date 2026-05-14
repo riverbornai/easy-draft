@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Trophy, BarChart3, ListOrdered } from 'lucide-react';
 
-function MiniBar({ score, color }) {
+function MiniBar({ score, model }) {
+  const color = model === 'gpt4o' ? 'bg-[#D4F53C]' : 'bg-[#0D2B22]';
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-[#E8EDE6] rounded-full overflow-hidden">
-        <div className={`h-full ${color} rounded-full`} style={{ width: `${(score / 10) * 100}%` }} />
+        <div className={`h-full ${color} rounded-full transition-all duration-1000`} style={{ width: `${(score / 10) * 100}%` }} />
       </div>
       <span className="text-[10px] font-black text-[#0D2B22] w-6 text-right">{score?.toFixed(1)}</span>
     </div>
@@ -64,14 +65,14 @@ export default function Eval() {
         <div className="flex items-end gap-6 h-56 overflow-x-auto pb-6 custom-scrollbar">
           {runs.slice(0, 12).reverse().map((run, i) => (
             <div key={`${run.id}-${i}`} className="flex flex-col items-center gap-3 flex-shrink-0 min-w-[80px] group/bar">
-              <div className="flex items-end gap-2 h-40">
+            <div className="flex items-end gap-2 h-40">
                 <div className="flex flex-col justify-end group/gpt">
                   <span className="text-[9px] font-black text-[#1A4435] text-center mb-1 opacity-0 group-hover/bar:opacity-100 transition-opacity">{run.gpt4oScore?.toFixed(1)}</span>
-                  <div className="w-7 bg-[#1A4435] rounded-t-xl transition-all group-hover/bar:brightness-110" style={{ height: `${((run.gpt4oScore ?? 0) / 10) * 140}px` }} />
+                  <div className="w-7 bg-[#D4F53C] rounded-t-xl transition-all group-hover/bar:brightness-110 shadow-[0_0_15px_rgba(212,245,60,0.2)]" style={{ height: `${((run.gpt4oScore ?? 0) / 10) * 140}px` }} />
                 </div>
                 <div className="flex flex-col justify-end group/claude">
                   <span className="text-[9px] font-black text-[#0D2B22] text-center mb-1 opacity-0 group-hover/bar:opacity-100 transition-opacity">{run.claudeScore?.toFixed(1)}</span>
-                  <div className="w-7 bg-[#0D2B22] rounded-t-xl transition-all group-hover/bar:brightness-125" style={{ height: `${((run.claudeScore ?? 0) / 10) * 140}px` }} />
+                  <div className="w-7 bg-[#0D2B22] rounded-t-xl transition-all group-hover/bar:brightness-125 shadow-[0_0_15px_rgba(13,43,34,0.1)]" style={{ height: `${((run.claudeScore ?? 0) / 10) * 140}px` }} />
                 </div>
               </div>
               <span className="text-[9px] font-black text-[#1A4435]/40 uppercase tracking-widest">Run {runs.length - (runs.slice(0, 12).length - 1 - i)}</span>
@@ -81,7 +82,7 @@ export default function Eval() {
         </div>
         <div className="flex gap-8 mt-8 pt-8 border-t border-[#E8EDE6]">
           <span className="flex items-center gap-3 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">
-            <span className="w-4 h-4 bg-[#1A4435] rounded-lg shadow-md" />GPT-4o
+            <span className="w-4 h-4 bg-[#D4F53C] rounded-lg shadow-md border border-[#D4F53C]/20" />GPT-4o
           </span>
           <span className="flex items-center gap-3 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">
             <span className="w-4 h-4 bg-[#0D2B22] rounded-lg shadow-md" />Claude
@@ -135,8 +136,8 @@ export default function Eval() {
                         </span>
                         : <span className="text-[#E8EDE6] text-xs">—</span>}
                     </td>
-                    <td className="px-8 py-5 w-48"><MiniBar score={run.gpt4oScore} color="bg-[#1A4435]" /></td>
-                    <td className="px-8 py-5 w-48"><MiniBar score={run.claudeScore} color="bg-[#0D2B22]" /></td>
+                    <td className="px-8 py-5 w-48"><MiniBar score={run.gpt4oScore} model="gpt4o" /></td>
+                    <td className="px-8 py-5 w-48"><MiniBar score={run.claudeScore} model="claude" /></td>
                   </tr>
                 ))
               }

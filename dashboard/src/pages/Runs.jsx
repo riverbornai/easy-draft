@@ -460,7 +460,7 @@ export default function Runs() {
                                 <span className="text-sm font-bold text-[#1A4435]/30">/ 10</span>
                               </div>
                               <div className="w-full h-2 bg-[#F2FFEE] rounded-full mt-6 overflow-hidden border border-[#E8EDE6]">
-                                <div className="h-full bg-[#0D2B22] rounded-full shadow-[0_0_10px_rgba(13,43,34,0.1)] transition-all duration-1000" style={{ width: `${selectedRun.gpt4oScore * 10}%` }} />
+                                <div className="h-full bg-[#D4F53C] rounded-full shadow-[0_0_10px_rgba(212,245,60,0.1)] transition-all duration-1000" style={{ width: `${selectedRun.gpt4oScore * 10}%` }} />
                               </div>
                             </div>
                           )}
