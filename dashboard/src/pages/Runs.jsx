@@ -38,7 +38,7 @@ export default function Runs() {
           });
 
           if (!run && id) {
-            // If not found, try fetching latest list once
+            // If not found, try fetching latest list
             try {
               const response = await axios.get('/api/run/list');
               const freshRuns = response.data;
@@ -54,19 +54,20 @@ export default function Runs() {
 
           if (run) {
             setSelectedRun(run);
-          // Auto-switch view mode based on status
-          if (run.pipelineStatus !== 'done' && run.pipelineStatus !== 'error') {
-            setViewMode('pipeline');
+            // Auto-switch view mode based on status
+            if (run.pipelineStatus !== 'done' && run.pipelineStatus !== 'error') {
+              setViewMode('pipeline');
+            } else {
+              setViewMode('output');
+            }
           } else {
-            setViewMode('output');
+            // CRITICAL FIX: If we have an ID in the URL but it's not in our list yet, 
+            // DO NOT redirect to the first run immediately. This prevents the "flash"
+            // of an old run page while the new one is being initialized in DB.
+            console.log(`Run ${targetId} not found in list yet, waiting...`);
           }
-          } else {
-            // If ID in URL is still invalid after refresh, fall back to first run
-            const firstRunId = (runs[0].id || runs[0].sessionId).replace('session_', '');
-            navigate(`/runs/${firstRunId}`, { replace: true });
-          }
-        } else {
-          // No ID in URL, default to first run and update URL
+        } else if (runs.length > 0) {
+          // No ID in URL, default to first run
           const firstRunId = (runs[0].id || runs[0].sessionId).replace('session_', '');
           navigate(`/runs/${firstRunId}`, { replace: true });
         }
@@ -98,8 +99,11 @@ export default function Runs() {
       
       // Auto-switch view mode based on state transitions
       if (newStatus === 'done' && oldStatus !== 'done') {
-        // 1. Pipeline finished -> Content
-        setViewMode('output');
+        // 1. Pipeline finished -> Wait 2s then switch to Content tab 
+        // so user can see the final checkmark in the progress bar
+        setTimeout(() => {
+          setViewMode('output');
+        }, 2000);
       } else if (oldStatus === 'review' && selectedRun.reviewStatus === 'pending' && 
                 (newStatus !== 'review' || response.data.reviewStatus !== 'pending')) {
         // 2. Human provided feedback (approved/rejected) -> stay/back to Pipeline to see next steps
@@ -518,7 +522,22 @@ export default function Runs() {
           <div className="flex-1 overflow-y-auto bg-[#F2FFEE]/10 p-12">
             <NewRunForm />
           </div>
+        ) : (id && !selectedRun) ? (
+          /* Transition Loading State */
+          <div className="h-full flex flex-col items-center justify-center bg-[#F2FFEE]/10 fade-in">
+            <div className="w-20 h-20 bg-white border border-[#E8EDE6] rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-[#0D2B22]/5 animate-pulse">
+              <Activity size={36} className="text-[#0D2B22]" />
+            </div>
+            <h3 className="text-xl font-black text-[#0D2B22] mb-2 tracking-tighter">Initializing Pipeline</h3>
+            <p className="text-sm text-[#1A4435]/60 font-medium">Please wait while we connect to the agent trace...</p>
+            <div className="mt-8 flex gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#0D2B22] animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#0D2B22] animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#0D2B22] animate-bounce" />
+            </div>
+          </div>
         ) : (
+          /* Empty State (No ID and no runs) */
           <div className="h-full flex items-center justify-center bg-[#F2FFEE]/10">
             <div className="text-center max-w-sm px-6">
               <div className="w-24 h-24 bg-white border border-[#E8EDE6] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-[#0D2B22]/5 transform hover:rotate-6 transition-transform duration-500">
