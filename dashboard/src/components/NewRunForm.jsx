@@ -61,6 +61,21 @@ export default function NewRunForm() {
 
       if (runId && typeof runId === 'string') {
         const displayId = runId.replace('session_', '');
+        
+        // POLL for the run to be ready in the DB before navigating
+        // This prevents the "flash" of the select-session page
+        let isReady = false;
+        let attempts = 0;
+        while (!isReady && attempts < 10) {
+          try {
+            await axios.get(`/api/run/status/${displayId}`);
+            isReady = true;
+          } catch (e) {
+            attempts++;
+            await new Promise(r => setTimeout(r, 400)); // wait 400ms
+          }
+        }
+        
         navigate(`/runs/${displayId}`);
       } else {
         throw new Error('Server did not return a valid Run ID.');
@@ -241,10 +256,18 @@ export default function NewRunForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-3 bg-[#0D2B22] text-[#D4F53C] font-black uppercase tracking-widest text-xs py-5 rounded-2xl hover:bg-[#1A4435] hover:shadow-2xl hover:shadow-[#0D2B22]/20 active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+          className={`w-full flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs py-5 rounded-2xl transition-all duration-500 group relative overflow-hidden ${
+            loading 
+              ? 'bg-[#1A4435] text-[#D4F53C]/50 cursor-not-allowed' 
+              : 'bg-[#0D2B22] text-[#D4F53C] hover:bg-[#1A4435] hover:shadow-2xl hover:shadow-[#0D2B22]/20 active:scale-[0.98]'
+          }`}
         >
           {loading ? (
-            <><Loader2 size={18} className="animate-spin" /> Starting pipeline...</>
+            <>
+              <Loader2 size={18} className="animate-spin text-[#D4F53C]" /> 
+              <span>Starting engine...</span>
+              <div className="absolute bottom-0 left-0 h-1 bg-[#D4F53C]/30 animate-progress-fast" style={{ width: '100%' }} />
+            </>
           ) : (
             <>
               Launch Agent Pipeline 
