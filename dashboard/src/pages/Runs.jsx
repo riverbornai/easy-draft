@@ -54,12 +54,12 @@ export default function Runs() {
 
           if (run) {
             setSelectedRun(run);
-            // Auto-switch view mode based on status
-            if (run.pipelineStatus !== 'done' && run.pipelineStatus !== 'error' && run.pipelineStatus !== 'review') {
-              setViewMode('pipeline');
-            } else {
-              setViewMode('output');
-            }
+          // Auto-switch view mode based on status
+          if (run.pipelineStatus !== 'done' && run.pipelineStatus !== 'error') {
+            setViewMode('pipeline');
+          } else {
+            setViewMode('output');
+          }
           } else {
             // If ID in URL is still invalid after refresh, fall back to first run
             const firstRunId = (runs[0].id || runs[0].sessionId).replace('session_', '');
@@ -96,9 +96,14 @@ export default function Runs() {
       
       setSelectedRun(response.data);
       
-      // Auto-switch to output when it just finished
+      // Auto-switch view mode based on state transitions
       if (newStatus === 'done' && oldStatus !== 'done') {
+        // 1. Pipeline finished -> Content
         setViewMode('output');
+      } else if (oldStatus === 'review' && selectedRun.reviewStatus === 'pending' && 
+                (newStatus !== 'review' || response.data.reviewStatus !== 'pending')) {
+        // 2. Human provided feedback (approved/rejected) -> stay/back to Pipeline to see next steps
+        setViewMode('pipeline');
       }
       
       // Stop polling if done or error
@@ -276,10 +281,17 @@ export default function Runs() {
                       </div>
                     )}
                     {selectedRun.pipelineStatus === 'review' ? (
-                      <div className="bg-[#0D2B22] px-3 py-1.5 rounded-xl flex items-center gap-2 border border-[#0D2B22] shadow-lg shadow-[#0D2B22]/20">
-                        <Loader2 size={12} className="text-[#D4F53C] animate-spin" />
-                        <span className="text-[11px] font-black text-[#D4F53C] uppercase tracking-widest">Awaiting Review</span>
-                      </div>
+                      selectedRun.reviewStatus === 'pending' ? (
+                        <div className="bg-[#0D2B22] px-3 py-1.5 rounded-xl flex items-center gap-2 border border-[#0D2B22] shadow-lg shadow-[#0D2B22]/20">
+                          <Loader2 size={12} className="text-[#D4F53C] animate-spin" />
+                          <span className="text-[11px] font-black text-[#D4F53C] uppercase tracking-widest">Awaiting Review</span>
+                        </div>
+                      ) : (
+                        <div className="bg-[#F2FFEE] px-3 py-1.5 rounded-xl flex items-center gap-2 border border-[#9FCEBE]/30">
+                          <Loader2 size={12} className="text-[#0D2B22] animate-spin" />
+                          <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-widest">Reviewing...</span>
+                        </div>
+                      )
                     ) : selectedRun.publishedPath && (
                       <div className="bg-emerald-500/10 px-3 py-1.5 rounded-xl flex items-center gap-2 border border-emerald-500/30">
                         <CheckCircle2 size={12} className="text-emerald-600" />
@@ -324,175 +336,181 @@ export default function Runs() {
               {/* Detail Content */}
               <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">
                 <div className="max-w-4xl mx-auto fade-in">
-                  {selectedRun.pipelineStatus === 'review' ? (
-                    /* HITL Review Interface */
-                    <div className="space-y-10 animate-in slide-in-from-bottom-8 duration-700">
-                      <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-12 shadow-xl shadow-[#0D2B22]/5">
-                        <div className="flex items-end justify-between mb-10 border-b border-[#E8EDE6] pb-8">
-                          <div>
-                            <span className="text-[10px] font-black text-[#1A4435] uppercase tracking-[0.3em] mb-2 block">Decision Required</span>
-                            <h2 className="text-3xl font-black text-[#0D2B22] tracking-tighter">Human Review Point</h2>
-                            <p className="text-sm text-[#1A4435] mt-2 font-medium opacity-60">The pipeline has drafted two variations. Please select the best performer.</p>
-                          </div>
-                          <div className="bg-[#F2FFEE] px-4 py-2 rounded-xl border border-[#9FCEBE]/30">
-                            <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-[0.1em]">
-                              Attempt {selectedRun.reviewAttempts || 1} of 3
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-8 mb-10">
-                          {/* GPT-4o Draft */}
-                          <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#D4F53C] hover:bg-white transition-all duration-500 group">
-                            <div className="flex items-center justify-between mb-6">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-xl bg-[#0D2B22] flex items-center justify-center shadow-lg">
-                                  <span className="text-[#D4F53C] text-[10px] font-black">A</span>
-                                </div>
-                                <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-widest">GPT-4o Draft</span>
-                              </div>
-                              <div className="w-2 h-2 rounded-full bg-[#D4F53C] shadow-[0_0_8px_rgba(212,245,60,0.8)]" />
-                            </div>
-                            <div className="text-[15px] text-[#1A4435] leading-relaxed max-h-[400px] overflow-y-auto pr-3 custom-scrollbar whitespace-pre-wrap mb-8 font-medium italic opacity-70 group-hover:opacity-100 transition-opacity">
-                              {selectedRun.gpt4oDraft || "The engine is still synthesizing this variation..."}
-                            </div>
-                            <button 
-                              onClick={() => handleApprove('gpt4o')}
-                              className="w-full bg-[#0D2B22] text-[#D4F53C] font-black py-4 rounded-2xl hover:bg-[#1A4435] hover:scale-[1.02] active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-[#0D2B22]/10"
-                            >
-                              <CheckCircle2 size={16} /> Approve GPT-4o
-                            </button>
-                          </div>
-
-                          {/* Claude Draft */}
-                          <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#0D2B22] hover:bg-white transition-all duration-500 group">
-                            <div className="flex items-center justify-between mb-6">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-xl bg-[#1A4435] flex items-center justify-center shadow-lg">
-                                  <span className="text-white text-[10px] font-black">B</span>
-                                </div>
-                                <span className="text-[11px] font-black text-[#1A4435] uppercase tracking-widest">Claude Draft</span>
-                              </div>
-                              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                            </div>
-                            <div className="text-[15px] text-[#1A4435] leading-relaxed max-h-[400px] overflow-y-auto pr-3 custom-scrollbar whitespace-pre-wrap mb-8 font-medium italic opacity-70 group-hover:opacity-100 transition-opacity">
-                              {selectedRun.claudeDraft || "Synthesizing secondary variation..."}
-                            </div>
-                            <button 
-                              onClick={() => handleApprove('claude')}
-                              className="w-full bg-[#0D2B22] text-[#D4F53C] font-black py-4 rounded-2xl hover:bg-[#1A4435] hover:scale-[1.02] active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-[#0D2B22]/10"
-                            >
-                              <CheckCircle2 size={16} /> Approve Claude
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Reject Section */}
-                        <div className="bg-[#F2FFEE]/30 rounded-3xl p-8 border border-[#9FCEBE]/20">
-                          <p className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-4 ml-1">Refinement Feedback</p>
-                          <div className="flex gap-4">
-                            <input 
-                              type="text"
-                              placeholder="e.g. 'Synthesize both ideas but make the tone more aggressive...'"
-                              className="flex-1 bg-white border border-[#E8EDE6] rounded-2xl px-6 py-4 text-sm font-semibold text-[#0D2B22] focus:outline-none focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all placeholder-[#1A4435]/30 shadow-inner"
-                              id="feedback-input-runs"
-                            />
-                            <button 
-                              onClick={() => handleReject(document.getElementById('feedback-input-runs').value)}
-                              className="bg-white text-red-500 border border-red-100 font-black px-8 rounded-2xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all text-[11px] uppercase tracking-[0.15em] shadow-sm shadow-red-500/5 active:scale-95"
-                            >
-                              Reject & Redraft
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : viewMode === 'output' ? (
-                    /* Post Content View */
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="bg-white rounded-[3rem] p-10 border border-[#E8EDE6] relative group shadow-2xl shadow-[#0D2B22]/5">
-                      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-3">
-                        <button 
-                          onClick={handleCopy}
-                          className={`p-2.5 rounded-full border shadow-sm transition-all duration-300 transform active:scale-90 ${
-                            copied 
-                              ? 'bg-[#D4F53C] border-[#D4F53C] text-[#0D2B22]' 
-                              : 'bg-white border-[#E8EDE6] text-[#1A4435] hover:text-[#0D2B22] hover:border-[#0D2B22] hover:shadow-md'
-                          }`}
-                          title="Copy content"
-                        >
-                          {copied ? <Check size={18} /> : <Copy size={18} />}
-                        </button>
-                        {copied && (
-                          <span className="text-[10px] font-black text-[#0D2B22] bg-[#D4F53C] px-2.5 py-1 rounded-lg border border-[#D4F53C] shadow-sm animate-in fade-in slide-in-from-top-1">
-                            Copied!
-                          </span>
-                        )}
-                      </div>
-                      
-                      {selectedRun.approvedDraft ? (
-                        <div className="whitespace-pre-wrap text-[#0D2B22] leading-relaxed font-serif text-xl">
-                          {selectedRun.approvedDraft}
-                        </div>
-                      ) : ((selectedRun.winner || selectedRun.activeModel) === 'claude' ? selectedRun.claudeDraft : selectedRun.gpt4oDraft) ? (
-                        <div className="whitespace-pre-wrap text-[#0D2B22] leading-relaxed font-serif text-xl">
-                          {(selectedRun.winner || selectedRun.activeModel) === 'claude' ? selectedRun.claudeDraft : selectedRun.gpt4oDraft}
-                        </div>
-                      ) : (
-                        <div className="text-center py-20">
-                          <FileText size={56} className="mx-auto text-[#1A4435] mb-6 opacity-30" />
-                          <h4 className="text-[#0D2B22] font-black mb-1">Content not available</h4>
-                          <p className="text-[#1A4435] text-sm max-w-xs mx-auto">This run may be in progress or was imported without full draft history.</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Metrics Section */}
-                    {(selectedRun.gpt4oScore || selectedRun.claudeScore) && (
-                      <div className="mt-16 pt-12 border-t border-[#E8EDE6]">
-                        <h4 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-10">Performance Analytics</h4>
-                        <div className="grid grid-cols-2 gap-10">
-                          {selectedRun.gpt4oScore && (
-                            <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
-                              <p className="text-[10px] font-black text-[#0D2B22] uppercase mb-4 tracking-widest opacity-60">GPT-4o Score</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-5xl font-black text-[#0D2B22] tracking-tighter">{selectedRun.gpt4oScore.toFixed(1)}</span>
-                                <span className="text-sm font-bold text-[#1A4435]/30">/ 10</span>
-                              </div>
-                              <div className="w-full h-2 bg-[#F2FFEE] rounded-full mt-6 overflow-hidden border border-[#E8EDE6]">
-                                <div className="h-full bg-[#D4F53C] rounded-full shadow-[0_0_10px_rgba(212,245,60,0.1)] transition-all duration-1000" style={{ width: `${selectedRun.gpt4oScore * 10}%` }} />
-                              </div>
-                            </div>
-                          )}
-                          {selectedRun.claudeScore && (
-                            <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
-                              <p className="text-[10px] font-black text-[#1A4435] uppercase mb-4 tracking-widest opacity-60">Claude Score</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-5xl font-black text-[#0D2B22] tracking-tighter">{selectedRun.claudeScore.toFixed(1)}</span>
-                                <span className="text-sm font-bold text-[#1A4435]/30">/ 10</span>
-                              </div>
-                              <div className="w-full h-2 bg-[#F2FFEE] rounded-full mt-6 overflow-hidden border border-[#E8EDE6]">
-                                <div className="h-full bg-[#0D2B22] rounded-full shadow-[0_0_10px_rgba(13,43,34,0.1)] transition-all duration-1000" style={{ width: `${selectedRun.claudeScore * 10}%` }} />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  /* Pipeline View */
-                  <div className="space-y-10 fade-in">
-                    <div className="bg-white border border-[#E8EDE6] rounded-[2.5rem] p-10 shadow-xl shadow-[#0D2B22]/5">
-                      <h3 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-10">Pipeline Progression</h3>
+                  {/* Global Pipeline Progress - Only show in Output mode if awaiting review, otherwise show in Pipeline mode */}
+                  {(viewMode === 'pipeline' || (selectedRun.pipelineStatus === 'review' && selectedRun.reviewStatus === 'pending')) && (
+                    <div className="mb-10">
                       <PipelineBar 
                         pipelineStatus={selectedRun.pipelineStatus || selectedRun.status} 
                         currentStep={selectedRun.currentStep ?? (selectedRun.status === 'done' ? 5 : -1)} 
+                        reviewStatus={selectedRun.reviewStatus}
                       />
                     </div>
-                    <AgentLog logs={selectedRun.log || []} />
-                  </div>
-                )}
+                  )}
+                  
+                  {/* Detail Content Area */}
+                  {viewMode === 'output' ? (
+                    /* Post Content View - Restored actual content display */
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="bg-white rounded-[3rem] p-10 border border-[#E8EDE6] relative group shadow-2xl shadow-[#0D2B22]/5">
+                        <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-3">
+                          <button 
+                            onClick={handleCopy}
+                            className={`p-2.5 rounded-full border shadow-sm transition-all duration-300 transform active:scale-90 ${
+                              copied 
+                                ? 'bg-[#D4F53C] border-[#D4F53C] text-[#0D2B22]' 
+                                : 'bg-white border-[#E8EDE6] text-[#1A4435] hover:text-[#0D2B22] hover:border-[#0D2B22] hover:shadow-md'
+                            }`}
+                            title="Copy content"
+                          >
+                            {copied ? <Check size={18} /> : <Copy size={18} />}
+                          </button>
+                          {copied && (
+                            <span className="text-[10px] font-black text-[#0D2B22] bg-[#D4F53C] px-2.5 py-1 rounded-lg border border-[#D4F53C] shadow-sm animate-in fade-in slide-in-from-top-1">
+                              Copied!
+                            </span>
+                          )}
+                        </div>
+                        
+                        {selectedRun.approvedDraft ? (
+                          <div className="whitespace-pre-wrap text-[#0D2B22] leading-relaxed font-serif text-xl">
+                            {selectedRun.approvedDraft}
+                          </div>
+                        ) : ((selectedRun.winner || selectedRun.activeModel) === 'claude' ? selectedRun.claudeDraft : selectedRun.gpt4oDraft) ? (
+                          <div className="whitespace-pre-wrap text-[#0D2B22] leading-relaxed font-serif text-xl">
+                            {(selectedRun.winner || selectedRun.activeModel) === 'claude' ? selectedRun.claudeDraft : selectedRun.gpt4oDraft}
+                          </div>
+                        ) : (
+                          <div className="text-center py-20">
+                            <FileText size={56} className="mx-auto text-[#1A4435] mb-6 opacity-30" />
+                            <h4 className="text-[#0D2B22] font-black mb-1">Content not available</h4>
+                            <p className="text-[#1A4435] text-sm max-w-xs mx-auto">This run may be in progress or was imported without full draft history.</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Metrics Section */}
+                      {(selectedRun.gpt4oScore || selectedRun.claudeScore) && (
+                        <div className="mt-16 pt-12 border-t border-[#E8EDE6]">
+                          <h4 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-10">Performance Analytics</h4>
+                          <div className="grid grid-cols-2 gap-10">
+                            {selectedRun.gpt4oScore && (
+                              <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
+                                <p className="text-[10px] font-black text-[#0D2B22] uppercase mb-4 tracking-widest opacity-60">GPT-4o Score</p>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-5xl font-black text-[#0D2B22] tracking-tighter">{selectedRun.gpt4oScore.toFixed(1)}</span>
+                                  <span className="text-sm font-bold text-[#1A4435]/30">/ 10</span>
+                                </div>
+                                <div className="w-full h-2 bg-[#F2FFEE] rounded-full mt-6 overflow-hidden border border-[#E8EDE6]">
+                                  <div className="h-full bg-[#D4F53C] rounded-full shadow-[0_0_10px_rgba(212,245,60,0.1)] transition-all duration-1000" style={{ width: `${selectedRun.gpt4oScore * 10}%` }} />
+                                </div>
+                              </div>
+                            )}
+                            {selectedRun.claudeScore && (
+                              <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
+                                <p className="text-[10px] font-black text-[#1A4435] uppercase mb-4 tracking-widest opacity-60">Claude Score</p>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-5xl font-black text-[#0D2B22] tracking-tighter">{selectedRun.claudeScore.toFixed(1)}</span>
+                                  <span className="text-sm font-bold text-[#1A4435]/30">/ 10</span>
+                                </div>
+                                <div className="w-full h-2 bg-[#F2FFEE] rounded-full mt-6 overflow-hidden border border-[#E8EDE6]">
+                                  <div className="h-full bg-[#0D2B22] rounded-full shadow-[0_0_10px_rgba(13,43,34,0.1)] transition-all duration-1000" style={{ width: `${selectedRun.claudeScore * 10}%` }} />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Pipeline (Trace) View */
+                    <div className="space-y-10 fade-in">
+                      {/* HITL Review Interface - Now shown within the Trace tab */}
+                      {(selectedRun.pipelineStatus === 'review' && selectedRun.reviewStatus === 'pending') && (
+                        <div className="space-y-10 animate-in slide-in-from-bottom-8 duration-700">
+                          <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-12 shadow-xl shadow-[#0D2B22]/5">
+                            <div className="flex items-end justify-between mb-10 border-b border-[#E8EDE6] pb-8">
+                              <div>
+                                <span className="text-[10px] font-black text-[#1A4435] uppercase tracking-[0.3em] mb-2 block">Decision Required</span>
+                                <h2 className="text-3xl font-black text-[#0D2B22] tracking-tighter">Human Review Point</h2>
+                                <p className="text-sm text-[#1A4435] mt-2 font-medium opacity-60">The pipeline has drafted two variations. Please select the best performer.</p>
+                              </div>
+                              <div className="bg-[#F2FFEE] px-4 py-2 rounded-xl border border-[#9FCEBE]/30">
+                                <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-[0.1em]">
+                                  Attempt {selectedRun.reviewAttempts || 1} of 3
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-8 mb-10">
+                              {/* GPT-4o Draft */}
+                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#D4F53C] hover:bg-white transition-all duration-500 group">
+                                <div className="flex items-center justify-between mb-6">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-xl bg-[#0D2B22] flex items-center justify-center shadow-lg">
+                                      <span className="text-[#D4F53C] text-[10px] font-black">A</span>
+                                    </div>
+                                    <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-widest">GPT-4o Draft</span>
+                                  </div>
+                                  <div className="w-2 h-2 rounded-full bg-[#D4F53C] shadow-[0_0_8px_rgba(212,245,60,0.8)]" />
+                                </div>
+                                <div className="text-[15px] text-[#1A4435] leading-relaxed max-h-[400px] overflow-y-auto pr-3 custom-scrollbar whitespace-pre-wrap mb-8 font-medium italic opacity-70 group-hover:opacity-100 transition-opacity">
+                                  {selectedRun.gpt4oDraft || "The engine is still synthesizing this variation..."}
+                                </div>
+                                <button 
+                                  onClick={() => handleApprove('gpt4o')}
+                                  className="w-full bg-[#0D2B22] text-[#D4F53C] font-black py-4 rounded-2xl hover:bg-[#1A4435] hover:scale-[1.02] active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-[#0D2B22]/10"
+                                >
+                                  <CheckCircle2 size={16} /> Approve GPT-4o
+                                </button>
+                              </div>
+
+                              {/* Claude Draft */}
+                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#0D2B22] hover:bg-white transition-all duration-500 group">
+                                <div className="flex items-center justify-between mb-6">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-xl bg-[#1A4435] flex items-center justify-center shadow-lg">
+                                      <span className="text-white text-[10px] font-black">B</span>
+                                    </div>
+                                    <span className="text-[11px] font-black text-[#1A4435] uppercase tracking-widest">Claude Draft</span>
+                                  </div>
+                                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                                </div>
+                                <div className="text-[15px] text-[#1A4435] leading-relaxed max-h-[400px] overflow-y-auto pr-3 custom-scrollbar whitespace-pre-wrap mb-8 font-medium italic opacity-70 group-hover:opacity-100 transition-opacity">
+                                  {selectedRun.claudeDraft || "Synthesizing secondary variation..."}
+                                </div>
+                                <button 
+                                  onClick={() => handleApprove('claude')}
+                                  className="w-full bg-[#0D2B22] text-[#D4F53C] font-black py-4 rounded-2xl hover:bg-[#1A4435] hover:scale-[1.02] active:scale-95 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-[#0D2B22]/10"
+                                >
+                                  <CheckCircle2 size={16} /> Approve Claude
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Reject Section */}
+                            <div className="bg-[#F2FFEE]/30 rounded-3xl p-8 border border-[#9FCEBE]/20">
+                              <p className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-4 ml-1">Refinement Feedback</p>
+                              <div className="flex gap-4">
+                                <input 
+                                  type="text"
+                                  placeholder="e.g. 'Synthesize both ideas but make the tone more aggressive...'"
+                                  className="flex-1 bg-white border border-[#E8EDE6] rounded-2xl px-6 py-4 text-sm font-semibold text-[#0D2B22] focus:outline-none focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all placeholder-[#1A4435]/30 shadow-inner"
+                                  id="feedback-input-runs"
+                                />
+                                <button 
+                                  onClick={() => handleReject(document.getElementById('feedback-input-runs').value)}
+                                  className="bg-white text-red-500 border border-red-100 font-black px-8 rounded-2xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all text-[11px] uppercase tracking-[0.15em] shadow-sm shadow-red-500/5 active:scale-95"
+                                >
+                                  Reject & Redraft
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <AgentLog logs={selectedRun.log || []} />
+                    </div>
+                  )}
               </div>
             </div>
           </>

@@ -11,11 +11,11 @@ const STATUS_TO_STEP = {
   created: -1, intake: 0, 'intake-complete': 0, 'research-ready': 0,
   research: 1, 'research-complete': 1,
   'writing-ready': 2, writing: 2,
-  review: 3,
-  publish: 4, 'eval-ready': 5, done: 5,
+  'review-ready': 3, review: 3,
+  'publish-ready': 4, publish: 4, 'eval-ready': 5, done: 5,
 };
 
-export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 }) {
+export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1, reviewStatus = null }) {
   const activeIdx = currentStep >= 0 ? currentStep : (STATUS_TO_STEP[pipelineStatus] ?? -1);
   const isDone    = pipelineStatus === 'done';
 
@@ -35,8 +35,9 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1 
 
       <div className="flex items-start gap-0 pb-8">
         {STEPS.map((step, i) => {
-          const done   = isDone || i < activeIdx;
-          const active = !isDone && i === activeIdx;
+          const isReviewPending = step.key === 'review' && reviewStatus === 'pending';
+          const done   = isDone || i < activeIdx || isReviewPending;
+          const active = !isDone && i === activeIdx && !isReviewPending;
 
           return (
             <div key={step.key} className="flex items-start flex-1 min-w-0 last:flex-none">
