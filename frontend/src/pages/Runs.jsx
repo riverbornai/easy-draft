@@ -41,7 +41,7 @@ export default function Runs() {
             // If not found, try fetching latest list
             try {
               const response = await axios.get('/api/run/list');
-              const freshRuns = response.data;
+              const freshRuns = Array.isArray(response.data) ? response.data : [];
               setRuns(freshRuns);
               run = freshRuns.find(r => {
                 const rId = r.id || r.sessionId;
@@ -80,7 +80,12 @@ export default function Runs() {
   const fetchRuns = async (isPoll = false) => {
     try {
       const response = await axios.get('/api/run/list');
-      setRuns(response.data);
+      if (Array.isArray(response.data)) {
+        setRuns(response.data);
+      } else {
+        console.error('Expected array for runs list, got:', response.data);
+        setRuns([]);
+      }
     } catch (error) {
       console.error('Error fetching runs:', error);
     } finally {
