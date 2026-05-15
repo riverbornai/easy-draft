@@ -5,7 +5,7 @@
  * POST /api/drafts/reject  — reject a draft with feedback
  */
 import { Router } from 'express';
-import { mockDrafts, activeRuns } from '../mockStore.js';
+import { activeRuns } from '../mockStore.js';
 import { updateSession } from '../../session.js';
 
 const router = Router();
