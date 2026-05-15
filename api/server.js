@@ -5,6 +5,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors    from 'cors';
+import mongoose from 'mongoose';
 import { setSessionListener } from '../session.js';
 
 
@@ -13,13 +14,32 @@ import agentRoutes from './routes/agents.js';
 import draftRoutes from './routes/drafts.js';
 import evalRoutes  from './routes/eval.js';
 
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+// ── MongoDB Connection ───────────────────────────────────────────────────────
+const MONGO_URI = process.env.MONGO_DB;
+
+if (!MONGO_URI) {
+  console.error('❌ MONGO_DB is not defined in .env');
+} else {
+  mongoose.connect(MONGO_URI)
+    .then(() => console.log('✅ Connected to MongoDB Atlas'))
+    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+}
+
 // ── SSE Bridge ───────────────────────────────────────────────────────────────
 // Listen for real session updates and broadcast to frontend
 setSessionListener((session, updates) => {
   if (updates.pipelineStatus) {
     // Map status to UI steps
     const stepMap = {
-      'intake': 0, 'research': 1, 'writing': 2, 'review': 3, 'publish': 4, 'eval': 5, 'done': 5, 'error': -1
+      'intake': 0, 'research': 1, 'writing': 2, 'review': 3, 'eval': 4, 'publish': 5, 'done': 5, 'error': -1
     };
     broadcastEvent({
       type: 'stage',
@@ -75,6 +95,16 @@ app.use('/api/run',    runRoutes);
 app.use('/api',        agentRoutes);
 app.use('/api/drafts', draftRoutes);
 app.use('/api/eval',   evalRoutes);
+
+// ── Error Handler ─────────────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error('Global Error Handler:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: err.message,
+    path: req.path
+  });
+});
 
 // ── Health ─────────────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>
