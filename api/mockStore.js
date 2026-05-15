@@ -64,13 +64,22 @@ export const historicalRuns = [
   },
 ];
 
-// activeRuns is now a proxy getter that pulls from session.js
+// activeRuns is now a proxy getter that pulls from MongoDB via session.js
 export const activeRuns = {
-  get: (id) => getSession(id),
-  has: (id) => !!getSession(id),
-  set: (id, val) => { /* session.js handles its own setting via createSession */ },
-  delete: (id) => { /* cleanup logic if needed */ },
-  values: () => allSessions().map(id => getSession(id)),
+  get: async (id) => await getSession(id),
+  has: async (id) => !!(await getSession(id)),
+  set: async (id, val) => { /* session.js handles its own setting via createSession */ },
+  delete: async (id) => { /* cleanup logic if needed */ },
+  values: async () => {
+    const ids = await allSessions();
+    const results = await Promise.all(ids.map(id => getSession(id)));
+    return results.filter(Boolean);
+  },
+  entries: async () => {
+    const ids = await allSessions();
+    const results = await Promise.all(ids.map(async id => [id, await getSession(id)]));
+    return results.filter(pair => pair[1] !== null);
+  }
 };
 
 // ── Shared constants for UI simulation ───────────────────────────────────────
