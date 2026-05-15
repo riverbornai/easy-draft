@@ -4,15 +4,15 @@
  */
 import 'dotenv/config';
 import express from 'express';
-import cors    from 'cors';
+import cors from 'cors';
 import mongoose from 'mongoose';
 import { setSessionListener } from './session.js';
 
 
-import runRoutes   from './routes/run.js';
+import runRoutes from './routes/run.js';
 import agentRoutes from './routes/agents.js';
 import draftRoutes from './routes/drafts.js';
-import evalRoutes  from './routes/eval.js';
+import evalRoutes from './routes/eval.js';
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
@@ -24,6 +24,7 @@ process.on('uncaughtException', (err) => {
 
 // ── MongoDB Connection ───────────────────────────────────────────────────────
 const MONGO_URI = process.env.MONGO_DB;
+console.log(MONGO_URI, "MONGO_URI");
 
 if (!MONGO_URI) {
   console.error('❌ MONGO_DB is not defined in .env');
@@ -50,7 +51,7 @@ setSessionListener((session, updates) => {
   }
 });
 
-const app  = express();
+const app = express();
 const PORT = process.env.API_PORT || 3001;
 
 // ── Middleware ─────────────────────────────────────────────────────────────────
@@ -68,9 +69,9 @@ export function broadcastEvent(data) {
 }
 
 app.get('/api/events', (req, res) => {
-  res.setHeader('Content-Type',  'text/event-stream');
+  res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection',    'keep-alive');
+  res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
@@ -91,10 +92,10 @@ app.get('/api/events', (req, res) => {
 });
 
 // ── Routes ─────────────────────────────────────────────────────────────────────
-app.use('/api/run',    runRoutes);
-app.use('/api',        agentRoutes);
+app.use('/api/run', runRoutes);
+app.use('/api', agentRoutes);
 app.use('/api/drafts', draftRoutes);
-app.use('/api/eval',   evalRoutes);
+app.use('/api/eval', evalRoutes);
 
 // ── Error Handler ─────────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
