@@ -6,7 +6,7 @@
  */
 import { Router } from 'express';
 import { activeRuns } from '../mockStore.js';
-import { updateSession } from '../../session.js';
+import { updateSession } from '../session.js';
 
 const router = Router();
 

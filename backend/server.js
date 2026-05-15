@@ -6,7 +6,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors    from 'cors';
 import mongoose from 'mongoose';
-import { setSessionListener } from '../session.js';
+import { setSessionListener } from './session.js';
 
 
 import runRoutes   from './routes/run.js';

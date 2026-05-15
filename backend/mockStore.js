@@ -7,7 +7,7 @@
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
-import { getSession, allSessions } from '../session.js';
+import { getSession, allSessions } from './session.js';
 
 // Historical runs are now fetched directly from MongoDB via session.js proxy
 

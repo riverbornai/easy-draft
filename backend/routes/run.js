@@ -9,8 +9,8 @@ import { broadcastEvent } from '../server.js';
 import {
   activeRuns,
 } from '../mockStore.js';
-import { runPipeline } from '../../orchestrator.js';
-import { createSession, updateSession } from '../../session.js';
+import { runPipeline } from '../orchestrator.js';
+import { createSession, updateSession } from '../session.js';
 
 const router = Router();
 

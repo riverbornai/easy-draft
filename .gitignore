@@ -1,7 +1,21 @@
+# Dependencies
 node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Environment
 .env
-sandbox/
-output/
-dist/
+backend/.env
+
+# App Data
+backend/sandbox/
+backend/output/
+backend/outputs/
+backend/data/
+
+# Build
+frontend/dist/
+
+# System
 .DS_Store
 *.log
