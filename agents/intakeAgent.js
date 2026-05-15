@@ -66,7 +66,7 @@ function printGuardrailBlock(reason) {
  */
 async function handleSessionUpdate(session, userMessage) {
   // Record in history
-  appendHistory(session.sessionId, 'user', userMessage);
+  await appendHistory(session.sessionId, 'user', userMessage);
 
   const { default: OpenAI } = await import('openai');
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -101,22 +101,22 @@ If the message is not about changing the brief, return: {}`,
   }
 
   if (Object.keys(changes).length > 0) {
-    updateSession(session.sessionId, { brief: changes });
+    await updateSession(session.sessionId, { brief: changes });
     const updated = Object.entries(changes)
       .map(([k, v]) => `${chalk.bold(k)} → ${chalk.cyan(v)}`)
       .join(', ');
     console.log(chalk.green(`  ✔  Brief updated: ${updated}`));
 
     const assistantMsg = `Updated brief: ${updated}. Is there anything else you'd like to change?`;
-    appendHistory(session.sessionId, 'assistant', assistantMsg);
+    await appendHistory(session.sessionId, 'assistant', assistantMsg);
     console.log(chalk.dim(`  Assistant: ${assistantMsg}`));
   } else {
     const assistantMsg = "I didn't detect any brief changes. Could you clarify what you'd like to adjust?";
-    appendHistory(session.sessionId, 'assistant', assistantMsg);
+    await appendHistory(session.sessionId, 'assistant', assistantMsg);
     console.log(chalk.dim(`  Assistant: ${assistantMsg}`));
   }
 
-  return session;
+  return await getSession(session.sessionId);
 }
 
 // ── Main export ───────────────────────────────────────────────────────────────
@@ -143,8 +143,8 @@ export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = n
   console.log(chalk.dim('─'.repeat(60)));
 
   // ── Step 1: Create session ─────────────────────────────────────────────────
-  const session = sessionId ? (getSession(sessionId) || createSession(sessionId)) : createSession();
-  updateSession(session.sessionId, { pipelineStatus: 'intake', currentStep: 0 });
+  const session = sessionId ? (await getSession(sessionId) || await createSession(sessionId)) : await createSession();
+  await updateSession(session.sessionId, { pipelineStatus: 'intake', currentStep: 0 });
 
   console.log(chalk.dim(`  Session ID: ${session.sessionId}\n`));
 
@@ -160,14 +160,14 @@ export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = n
       brief = await collectBrief();
 
       // Record the intake in history
-      appendHistory(session.sessionId, 'user', `Content brief: ${JSON.stringify(brief)}`);
+      await appendHistory(session.sessionId, 'user', `Content brief: ${JSON.stringify(brief)}`);
 
       // Run input guardrail
       console.log(chalk.dim('\n  🛡  Running input safety guardrail...'));
       const guardrailResult = await runInputGuardrail(brief);
 
       if (guardrailResult.tripwireTriggered) {
-        logError(session.sessionId, 'intake-guardrail', guardrailResult.outputInfo?.reason);
+        await logError(session.sessionId, 'intake-guardrail', guardrailResult.outputInfo?.reason);
         printGuardrailBlock(guardrailResult.outputInfo?.reason);
 
         if (attempts >= MAX_RETRY_ATTEMPTS) {
@@ -189,7 +189,7 @@ export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = n
     console.log(chalk.dim('  Brief provided via API. Running guardrail...'));
     const guardrailResult = await runInputGuardrail(brief);
     if (guardrailResult.tripwireTriggered) {
-       logError(session.sessionId, 'intake-guardrail', guardrailResult.outputInfo?.reason);
+       await logError(session.sessionId, 'intake-guardrail', guardrailResult.outputInfo?.reason);
        throw new Error(`[IntakeAgent] Web brief blocked by guardrail: ${guardrailResult.outputInfo?.reason}`);
     }
     console.log(chalk.green('  ✔  Web brief passed safety check.\n'));
@@ -209,13 +209,13 @@ export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = n
   }
 
   // ── Step 5: Store brief in session ────────────────────────────────────────
-  updateSession(session.sessionId, {
+  await updateSession(session.sessionId, {
     brief,
     pipelineStatus: 'intake-complete',
     currentStep: 1,
   });
 
-  appendHistory(
+  await appendHistory(
     session.sessionId,
     'assistant',
     `Brief confirmed. Moving to research phase for topic: "${brief.topic}".`
@@ -253,7 +253,7 @@ export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = n
   }
 
   // ── Final session state ───────────────────────────────────────────────────
-  const finalSession = updateSession(session.sessionId, {
+  const finalSession = await updateSession(session.sessionId, {
     pipelineStatus: 'research-ready',
     currentStep: 2,
   });
