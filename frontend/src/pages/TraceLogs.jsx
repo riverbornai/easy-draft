@@ -22,7 +22,14 @@ export default function TraceLogs() {
 
   const fetch = () => {
     axios.get('/api/agents/log', { params: { runId: runFilter } })
-      .then(r => setLogs(r.data))
+      .then(r => {
+        if (Array.isArray(r.data)) {
+          setLogs(r.data);
+        } else {
+          console.error('Expected array for logs, got:', r.data);
+          setLogs([]);
+        }
+      })
       .catch(()=>{});
   };
 
