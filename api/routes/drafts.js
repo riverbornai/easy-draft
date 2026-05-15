@@ -6,18 +6,19 @@
  */
 import { Router } from 'express';
 import { mockDrafts, activeRuns } from '../mockStore.js';
+import { updateSession } from '../../session.js';
 
 const router = Router();
 
-// ── GET /api/eval/leaderboard ─────────────────────────────────────────────────
-router.get('/', (_req, res) => {
-  const allRuns = [...activeRuns.values()];
+// ── GET /api/drafts ───────────────────────────────────────────────────────────
+router.get('/', async (_req, res) => {
+  const allRuns = await activeRuns.values();
   
   // 1. First, look for a run that is specifically waiting for review (HITL)
   const pendingRun = allRuns.find(r => r.pipelineStatus === 'review' && r.reviewStatus === 'pending');
   
   // 2. If none, look for the most recent run that has drafts
-  const latestRun = allRuns.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+  const latestRun = [...allRuns].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
     .find(r => r.gpt4oDraft || r.claudeDraft);
 
   const active = pendingRun || latestRun;
@@ -34,50 +35,57 @@ router.get('/', (_req, res) => {
 });
 
 // ── POST /api/drafts/approve ──────────────────────────────────────────────────
-router.post('/approve', (req, res) => {
+router.post('/approve', async (req, res) => {
   const { runId, model, editedContent } = req.body; // model: 'gpt4o' | 'claude'
-  // Find most recent active run if no runId specified
   const id = runId;
-  let run = id ? activeRuns.get(id) : null;
+  let run = id ? await activeRuns.get(id) : null;
   if (!run && id && !id.startsWith('session_')) {
-    run = activeRuns.get(`session_${id}`);
+    run = await activeRuns.get(`session_${id}`);
   }
   if (!run && !id) {
-    run = [...activeRuns.values()].at(-1);
+    const values = await activeRuns.values();
+    run = values.at(-1);
   }
 
   if (run) {
-    run.reviewStatus   = 'approved';
-    run.activeModel    = model ?? 'gpt4o';
-    run.pipelineStatus = 'publish';
-    run.currentStep    = 4;
-    // If user edited the draft inline, persist the edited version
+    const updates = {
+      reviewStatus: 'approved',
+      activeModel: model ?? 'gpt4o',
+      pipelineStatus: 'publish-ready',
+      currentStep: 4
+    };
+
     if (editedContent) {
-      if (model === 'claude') run.claudeDraft = editedContent;
-      else                    run.gpt4oDraft  = editedContent;
+      if (model === 'claude') updates.claudeDraft = editedContent;
+      else                    updates.gpt4oDraft  = editedContent;
     }
-    run.approvedDraft = editedContent
+
+    updates.approvedDraft = editedContent
       ?? (model === 'claude' ? run.claudeDraft : run.gpt4oDraft);
+
+    await updateSession(run.sessionId, updates);
   }
   res.json({ success: true, message: `Draft approved (${model ?? 'gpt4o'})` });
 });
 
 // ── POST /api/drafts/reject ───────────────────────────────────────────────────
-router.post('/reject', (req, res) => {
+router.post('/reject', async (req, res) => {
   const { runId, feedback } = req.body;
   const id = runId;
-  let run = id ? activeRuns.get(id) : null;
+  let run = id ? await activeRuns.get(id) : null;
   if (!run && id && !id.startsWith('session_')) {
-    run = activeRuns.get(`session_${id}`);
+    run = await activeRuns.get(`session_${id}`);
   }
   if (!run && !id) {
-    run = [...activeRuns.values()].at(-1);
+    const values = await activeRuns.values();
+    run = values.at(-1);
   }
   
   if (run) {
-    run.reviewStatus = 'rejected';
-    run.reviewNotes  = [...(run.reviewNotes ?? []), feedback];
-    // The ReviewAgent loop will pick this up from the session and proceed
+    await updateSession(run.sessionId, {
+      reviewStatus: 'rejected',
+      reviewNotes: [...(run.reviewNotes ?? []), feedback]
+    });
   }
   res.json({ success: true, message: 'Draft rejected — ReviewAgent will now re-run Writer' });
 });
