@@ -3,164 +3,129 @@
  * ──────────────────────────────────────────────────────────────────────────────
  * Central session store for the AI Content Studio pipeline.
  *
- * The session object is the single source of truth that flows through every
- * agent. Instead of re-sending history, agents read/write fields here, making
- * the pipeline fully stateful across multiple turns.
- *
- * Usage:
- *   import { createSession, getSession, updateSession } from './session.js';
- *
- * Fields written by each phase:
- *   Phase 1  – intake        : brief, history, createdAt
- *   Phase 2  – research      : factSheet, searchUsed
- *   Phase 3  – writer        : gpt4oDraft, claudeDraft
- *   Phase 4  – review        : approvedDraft, reviewNotes, reviewAttempts
- *   Phase 5  – publisher     : formattedPost, publishedPath
- *   Phase 6  – eval          : evalScores, leaderboard
+ * This file now uses MongoDB via Mongoose for persistent storage.
+ * All functions are now ASYNCHRONOUS.
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
-// In-memory store (keyed by sessionId).
-// For a production system you would swap this with Redis / a DB.
-const _store = new Map();
+import Session from './models/Session.js';
+
 let _listener = null;
 
 export function setSessionListener(fn) {
   _listener = fn;
 }
 
-
 /**
- * createSession – initialise a fresh session and return it.
- * @param {string} [id] – optional deterministic ID (auto-generated otherwise)
- * @returns {object} session
+ * createSession – initialise a fresh session and save to DB.
+ * @param {string} [id] – optional deterministic ID
+ * @returns {Promise<object>} session
  */
-export function createSession(id) {
+export async function createSession(id) {
   const sessionId = id ?? `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-  const session = {
-    // ── Identity ──────────────────────────────────────────────────────────────
+  const sessionData = {
     sessionId,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-
-    // ── Phase 1 – Intake ──────────────────────────────────────────────────────
     brief: {
-      topic:    null,   // string  – what is the content about?
-      tone:     null,   // string  – e.g. "professional", "casual", "witty"
-      audience: null,   // string  – e.g. "startup founders", "HR managers"
-      channel:  null,   // "linkedin" | "blog" | "xthread" | "email"
-      angle:    null,   // optional – specific hook or unique angle
+      topic:    null,
+      tone:     null,
+      audience: null,
+      channel:  null,
+      angle:    null,
     },
-
-    // Conversation history with the Intake Agent (multi-turn support)
-    history: [],        // [{ role: "user"|"assistant", content: string }]
-
-    // ── Phase 2 – Research ────────────────────────────────────────────────────
-    factSheet:   null,  // object – structured facts produced by Research Agent
-    searchUsed:  false, // boolean – did Research Agent call WebSearch?
-    searchReason: null, // string  – LLM justification from searchDecision tool
-
-    // ── Phase 3 – Writer ──────────────────────────────────────────────────────
-    gpt4oDraft:  null,  // string – draft written by GPT-4o
-    claudeDraft: null,  // string – draft written by Claude (may be null)
-    activeModel: null,  // "gpt4o" | "claude" – which draft the Review Agent sees
-
-    // ── Phase 4 – Review ──────────────────────────────────────────────────────
-    approvedDraft:  null, // string – the human-approved final draft
-    reviewNotes:    [],   // string[] – reviewer feedback per iteration
-    reviewAttempts: 0,    // number  – max 3 before auto-escalation
-    reviewStatus:   null, // "pending" | "approved" | "rejected" | "escalated"
-
-    // ── Phase 5 – Publisher ───────────────────────────────────────────────────
-    formattedPost: null,  // string – post after channel template applied
-    publishedPath: null,  // string – file path of the saved .md file
-
-    // ── Phase 6 – Eval ────────────────────────────────────────────────────────
+    history: [],
+    factSheet:   null,
+    searchUsed:  false,
+    searchReason: null,
+    gpt4oDraft:  null,
+    claudeDraft: null,
+    activeModel: null,
+    approvedDraft:  null,
+    reviewNotes:    [],
+    reviewAttempts: 0,
+    reviewStatus:   null,
+    formattedPost: null,
+    publishedPath: null,
     evalScores: {
-      accuracy:         null, // 0-10
-      toneMatch:        null, // 0-10
-      formatCompliance: null, // 0-10
-      hookStrength:     null, // 0-10
-      overall:          null, // average
+      accuracy:         null,
+      toneMatch:        null,
+      formatCompliance: null,
+      hookStrength:     null,
+      overall:          null,
     },
-
-    // ── Pipeline metadata ─────────────────────────────────────────────────────
-    pipelineStatus: 'created', // created | intake | research | writing |
-                                // review  | publish | eval    | done | error
-    log: [],                    // { id, ts, agent, type, msg }[]
-    errors: [],                 // { phase, message, timestamp }[]
+    pipelineStatus: 'created',
+    log: [],
+    pipelineErrors: [],
   };
 
-  _store.set(sessionId, session);
-  return session;
+  const session = await Session.create(sessionData);
+  return session.toObject();
 }
 
 /**
- * getSession – retrieve an existing session by ID.
+ * getSession – retrieve an existing session by ID from MongoDB.
  * @param {string} sessionId
- * @returns {object|null}
+ * @returns {Promise<object|null>}
  */
-export function getSession(sessionId) {
-  return _store.get(sessionId) ?? null;
+export async function getSession(sessionId) {
+  const session = await Session.findOne({ sessionId });
+  return session ? session.toObject() : null;
 }
 
 /**
- * updateSession – merge a partial update into an existing session.
- * Deep-merges one level for nested objects (brief, evalScores, etc.).
- *
+ * updateSession – merge a partial update into a MongoDB document.
  * @param {string} sessionId
  * @param {object} updates   – partial session object
- * @returns {object}          updated session
+ * @returns {Promise<object>} updated session
  */
-export function updateSession(sessionId, updates) {
-  const session = _store.get(sessionId);
-  if (!session) throw new Error(`Session not found: ${sessionId}`);
-
-  // Deep-merge first-level objects so callers only pass changed keys
+export async function updateSession(sessionId, updates) {
+  // Deep-merge first-level objects (brief, evalScores)
   const DEEP_MERGE_KEYS = ['brief', 'evalScores'];
+  
+  const query = { sessionId };
+  const updateOp = { $set: {} };
 
   for (const [key, value] of Object.entries(updates)) {
     if (DEEP_MERGE_KEYS.includes(key) && typeof value === 'object' && value !== null) {
-      session[key] = { ...session[key], ...value };
+      for (const [subKey, subValue] of Object.entries(value)) {
+        updateOp.$set[`${key}.${subKey}`] = subValue;
+      }
     } else {
-      session[key] = value;
+      updateOp.$set[key] = value;
     }
   }
 
-  session.updatedAt = new Date().toISOString();
+  const session = await Session.findOneAndUpdate(query, updateOp, { new: true });
+  if (!session) throw new Error(`Session not found: ${sessionId}`);
 
+  const obj = session.toObject();
   if (_listener) {
-    _listener(session, updates);
+    _listener(obj, updates);
   }
 
-  return session;
+  return obj;
 }
 
 /**
- * appendHistory – add a message to the session's conversation history.
- * @param {string} sessionId
- * @param {'user'|'assistant'} role
- * @param {string} content
+ * appendHistory – add a message to the session's conversation history in DB.
  */
-export function appendHistory(sessionId, role, content) {
-  const session = _store.get(sessionId);
+export async function appendHistory(sessionId, role, content) {
+  const session = await Session.findOneAndUpdate(
+    { sessionId },
+    { 
+      $push: { history: { role, content, timestamp: new Date() } },
+      $set: { updatedAt: new Date() }
+    },
+    { new: true }
+  );
   if (!session) throw new Error(`Session not found: ${sessionId}`);
-  session.history.push({ role, content, timestamp: new Date().toISOString() });
-  session.updatedAt = new Date().toISOString();
+  return session.toObject();
 }
 
 /**
- * addLog – record an agent activity for the dashboard log.
- * @param {string} sessionId
- * @param {string} agent – e.g. "WriterAgent"
- * @param {string} msg – log message
- * @param {string} type – "agent" | "system" | "tool"
+ * addLog – record an agent activity in DB.
  */
-export function addLog(sessionId, agent, msg, type = 'agent') {
-  const session = _store.get(sessionId);
-  if (!session) return;
-  
+export async function addLog(sessionId, agent, msg, type = 'agent') {
   const logEntry = {
     id: Date.now() + Math.random(),
     ts: new Date().toLocaleTimeString('en-US', { hour12: false }),
@@ -169,47 +134,52 @@ export function addLog(sessionId, agent, msg, type = 'agent') {
     msg
   };
   
-  session.log.push(logEntry);
-  session.updatedAt = new Date().toISOString();
+  const session = await Session.findOneAndUpdate(
+    { sessionId },
+    { 
+      $push: { log: logEntry },
+      $set: { updatedAt: new Date() }
+    },
+    { new: true }
+  );
   
-  if (_listener) {
-    _listener(session, { log: logEntry });
+  if (session && _listener) {
+    _listener(session.toObject(), { log: logEntry });
   }
 }
 
 /**
- * logError – record a pipeline error without crashing.
- * @param {string} sessionId
- * @param {string} phase
- * @param {string|Error} error
+ * logError – record a pipeline error in DB.
  */
-export function logError(sessionId, phase, error) {
-  const session = _store.get(sessionId);
-  if (!session) return;
-  session.errors.push({
+export async function logError(sessionId, phase, error) {
+  const errorEntry = {
     phase,
     message: error instanceof Error ? error.message : String(error),
-    timestamp: new Date().toISOString(),
-  });
-  session.updatedAt = new Date().toISOString();
+    timestamp: new Date(),
+  };
+
+  await Session.findOneAndUpdate(
+    { sessionId },
+    { 
+      $push: { pipelineErrors: errorEntry },
+      $set: { updatedAt: new Date() }
+    }
+  );
 }
 
 /**
- * serializeSession – return a clean, JSON-safe snapshot of the session.
- * Useful for saving to disk / tracing.
- * @param {string} sessionId
- * @returns {string} JSON string
+ * serializeSession – return a clean snapshot.
  */
-export function serializeSession(sessionId) {
-  const session = getSession(sessionId);
+export async function serializeSession(sessionId) {
+  const session = await getSession(sessionId);
   if (!session) throw new Error(`Session not found: ${sessionId}`);
   return JSON.stringify(session, null, 2);
 }
 
 /**
- * allSessions – list all active session IDs (debugging / eval).
- * @returns {string[]}
+ * allSessions – list all active session IDs.
  */
-export function allSessions() {
-  return [..._store.keys()];
+export async function allSessions() {
+  const sessions = await Session.find({}, 'sessionId');
+  return sessions.map(s => s.sessionId);
 }
