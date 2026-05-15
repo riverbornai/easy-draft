@@ -66,8 +66,8 @@ Return ONLY valid JSON:
 
     return updateSession(sessionId, {
       evalScores: scores,
-      currentStep: 5,
-      pipelineStatus: 'done'
+      currentStep: 4,
+      pipelineStatus: 'eval'
     });
   } catch (err) {
     console.error(chalk.red('  [EvalRunner] Error:'), err.message);

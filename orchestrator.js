@@ -118,24 +118,25 @@ export async function runPipeline({ skipMultiTurn = false, preFilledBrief = null
       updateSession(session.sessionId, { reviewStatus: 'escalated', pipelineStatus: 'escalated' });
     }
 
-    // ── Phase 5: Publisher ───────────────────────────────────────────────────
+    // ── Phase 5: Eval ────────────────────────────────────────────────────────
     if (session.pipelineStatus !== 'escalated') {
-      printPhaseHeader(5, 'Publisher Agent — Formatting & Saving');
-      updateSession(session.sessionId, { pipelineStatus: 'publish', currentStep: 4 });
+      printPhaseHeader(5, 'Eval Runner — Scoring & Analysis');
+      updateSession(session.sessionId, { pipelineStatus: 'eval', currentStep: 4 });
+      addLog(session.sessionId, 'EvalRunner', 'Running automated quality scoring...');
+      session = await runEvalRunner(session);
+      session = getSession(session.sessionId) || session;
+      addLog(session.sessionId, 'EvalRunner', 'Evaluation complete.');
+    }
+
+    // ── Phase 6: Publisher ───────────────────────────────────────────────────
+    if (session.pipelineStatus !== 'escalated') {
+      printPhaseHeader(6, 'Publisher Agent — Formatting & Saving');
+      updateSession(session.sessionId, { pipelineStatus: 'publish', currentStep: 5 });
       addLog(session.sessionId, 'PublisherAgent', 'Formatting and saving final output...');
       session = await runPublisherAgent(session);
       session = getSession(session.sessionId) || session;
-      addLog(session.sessionId, 'PublisherAgent', 'Output published successfully.');
-      updateSession(session.sessionId, { pipelineStatus: 'eval', currentStep: 5 });
+      addLog(session.sessionId, 'PublisherAgent', 'Output published successfully. Pipeline finished.');
     }
-
-    // ── Phase 6: Eval ────────────────────────────────────────────────────────
-    printPhaseHeader(6, 'Eval Runner — Scoring & Tracing');
-    addLog(session.sessionId, 'EvalRunner', 'Running automated quality scoring...');
-    session = await runEvalRunner(session);
-    session = getSession(session.sessionId) || session;
-    addLog(session.sessionId, 'EvalRunner', 'Evaluation complete. Pipeline finished.');
-    updateSession(session.sessionId, { pipelineStatus: 'done' });
 
     printPipelineComplete(session);
     return session;

@@ -3,8 +3,8 @@ const STEPS = [
   { label: 'Research',  key: 'research'  },
   { label: 'Writer',    key: 'writing'   },
   { label: 'Review',    key: 'review'    },
-  { label: 'Publisher', key: 'publish'   },
-  { label: 'Eval',      key: 'done'      },
+  { label: 'Eval',      key: 'eval'      },
+  { label: 'Publisher', key: 'done'      },
 ];
 
 const STATUS_TO_STEP = {
@@ -12,7 +12,7 @@ const STATUS_TO_STEP = {
   research: 1, 'research-complete': 1,
   'writing-ready': 2, writing: 2,
   'review-ready': 3, review: 3,
-  'publish-ready': 4, publish: 4, 'eval-ready': 5, done: 5,
+  'eval-ready': 4, eval: 4, 'publish-ready': 5, done: 5,
 };
 
 export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1, reviewStatus = null }) {
