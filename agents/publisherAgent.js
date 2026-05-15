@@ -24,7 +24,7 @@ export async function runPublisherAgent(session) {
   console.log(chalk.dim('─'.repeat(60)));
 
   // Add a small delay so the user can see the "Publisher" step loading in the UI
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise(resolve => setTimeout(resolve, 3000));
 
   if (!approvedDraft) {
     throw new Error('[PublisherAgent] No approved draft found in session.');
