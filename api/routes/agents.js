@@ -10,11 +10,12 @@ import { mockAgentLog, mockFactSheet, historicalRuns, activeRuns } from '../mock
 const router = Router();
 
 // ── GET /api/agents/log ───────────────────────────────────────────────────────
-router.get('/agents/log', (req, res) => {
+router.get('/agents/log', async (req, res) => {
   const { runId } = req.query;
 
   // Gather logs from all active runs
-  let allLogs = [...activeRuns.values()].flatMap(r => 
+  const activeValues = await activeRuns.values();
+  let allLogs = activeValues.flatMap(r => 
     (r.log ?? []).map(l => ({ ...l, runId: r.sessionId, topic: r.topic || r.brief?.topic }))
   );
 
@@ -40,15 +41,15 @@ router.get('/sandbox/factsheet', (_req, res) => {
 });
 
 // ── GET /api/metrics ──────────────────────────────────────────────────────────
-router.get('/metrics', (_req, res) => {
-  const activeList = [...activeRuns.values()];
+router.get('/metrics', async (_req, res) => {
+  const activeList = await activeRuns.values();
   const allRuns    = [...historicalRuns, ...activeList];
   
   // A run is "done" if pipelineStatus is 'done'
   const doneRuns   = allRuns.filter(r => r.pipelineStatus === 'done' || r.status === 'done');
   
   const totalRuns     = allRuns.length;
-  const guardrailHits = allRuns.filter(r => r.guardrailHit || (r.errors && r.errors.length > 0)).length;
+  const guardrailHits = allRuns.filter(r => r.guardrailHit || (r.pipelineErrors && r.pipelineErrors.length > 0)).length;
   const webSearches   = allRuns.filter(r => r.searchUsed).length;
   
   const avgScore = doneRuns.length
