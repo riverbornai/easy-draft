@@ -175,7 +175,7 @@ export async function runResearchAgent(session) {
   console.log(chalk.dim(`  Audience: ${brief.audience}`));
   console.log(chalk.dim(`  Channel:  ${brief.channel}\n`));
 
-  updateSession(sessionId, { pipelineStatus: 'research', currentStep: 1 });
+  await updateSession(sessionId, { pipelineStatus: 'research', currentStep: 1 });
 
   // ── Step 1: Initialise sandbox ─────────────────────────────────────────────
   let sandboxPath;
@@ -183,7 +183,7 @@ export async function runResearchAgent(session) {
     sandboxPath = await initialiseSandbox(sessionId);
     console.log(chalk.dim(`  🗂  Sandbox: ${sandboxPath}`));
   } catch (err) {
-    logError(sessionId, 'research-sandbox', err);
+    await logError(sessionId, 'research-sandbox', err);
     throw new Error(`[ResearchAgent] Sandbox init failed: ${err.message}`);
   }
 
@@ -206,12 +206,12 @@ export async function runResearchAgent(session) {
       decisionSpinner.stop();
     } catch (err) {
       decisionSpinner.fail('Search decision failed');
-      logError(sessionId, 'research-search-decision', err);
+      await logError(sessionId, 'research-search-decision', err);
       decision = { needsSearch: false, reason: 'Decision error — using own knowledge.', searchQuery: brief.topic };
     }
 
     // Update session with search decision metadata
-    updateSession(sessionId, {
+    await updateSession(sessionId, {
       searchReason: decision.reason,
       searchUsed:   false, // will flip to true if search runs
     });
@@ -221,9 +221,9 @@ export async function runResearchAgent(session) {
       console.log(chalk.yellow('\n  🔍  Web search triggered. Running search...'));
       try {
         searchResult = await webSearch(decision.searchQuery, brief.topic);
-        updateSession(sessionId, { searchUsed: true });
+        await updateSession(sessionId, { searchUsed: true });
       } catch (err) {
-        logError(sessionId, 'research-websearch', err);
+        await logError(sessionId, 'research-websearch', err);
         console.log(chalk.yellow('  ⚠  Web search failed — continuing with model knowledge.'));
         searchResult = null;
       }
@@ -260,7 +260,7 @@ export async function runResearchAgent(session) {
       synthSpinner.succeed(chalk.green('  Fact sheet synthesized'));
     } catch (err) {
       synthSpinner.fail('Fact synthesis failed');
-      logError(sessionId, 'research-synthesis', err);
+      await logError(sessionId, 'research-synthesis', err);
       throw new Error(`[ResearchAgent] Fact synthesis failed: ${err.message}`);
     }
 
@@ -269,14 +269,14 @@ export async function runResearchAgent(session) {
       const savedPath = await saveFactSheet(sandboxPath, factSheet);
       console.log(chalk.green(`  💾  Saved: ${savedPath}`));
     } catch (err) {
-      logError(sessionId, 'research-save', err);
+      await logError(sessionId, 'research-save', err);
       console.warn(chalk.yellow('  ⚠  Could not save fact_sheet.json to sandbox — continuing.'));
     }
 
   }); // end withTrace
 
   // ── Step 6: Update session ────────────────────────────────────────────────
-  const updatedSession = updateSession(sessionId, {
+  const updatedSession = await updateSession(sessionId, {
     factSheet,
     searchUsed:   decision?.needsSearch && searchResult !== null,
     searchReason: decision?.reason,
