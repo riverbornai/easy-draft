@@ -44,18 +44,18 @@ function checkEnv() {
     process.exit(1);
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn(chalk.yellow(
-      '  ⚠  ANTHROPIC_API_KEY not set — Claude draft will be skipped in Phase 3.'
-    ));
-  }
+  // if (!process.env.ANTHROPIC_API_KEY) {
+  //   console.warn(chalk.yellow(
+  //     '  ⚠  ANTHROPIC_API_KEY not set — Claude draft will be skipped in Phase 3.'
+  //   ));
+  // }
 }
 
 async function ensureDirectories() {
   const dirs = [
     process.env.SANDBOX_DIR ?? './sandbox',
-    process.env.OUTPUT_DIR  ?? './outputs',
-    process.env.DATA_DIR    ?? './data',
+    process.env.OUTPUT_DIR ?? './outputs',
+    process.env.DATA_DIR ?? './data',
   ].map(d => path.resolve(__dirname, d));
 
   for (const dir of dirs) {
@@ -83,12 +83,12 @@ function printStartupBanner() {
 
 function printPhaseMap() {
   const phases = [
-    { id: 1, name: 'Intake Agent',     status: '✅ Active',  color: chalk.green },
-    { id: 2, name: 'Research Agent',   status: '🔲 Phase 2', color: chalk.dim },
-    { id: 3, name: 'Writer Agent',     status: '🔲 Phase 3', color: chalk.dim },
-    { id: 4, name: 'Review Agent',     status: '🔲 Phase 4', color: chalk.dim },
-    { id: 5, name: 'Publisher Agent',  status: '🔲 Phase 5', color: chalk.dim },
-    { id: 6, name: 'Eval Runner',      status: '🔲 Phase 6', color: chalk.dim },
+    { id: 1, name: 'Intake Agent', status: '✅ Active', color: chalk.green },
+    { id: 2, name: 'Research Agent', status: '🔲 Phase 2', color: chalk.dim },
+    { id: 3, name: 'Writer Agent', status: '🔲 Phase 3', color: chalk.dim },
+    { id: 4, name: 'Review Agent', status: '🔲 Phase 4', color: chalk.dim },
+    { id: 5, name: 'Publisher Agent', status: '🔲 Phase 5', color: chalk.dim },
+    { id: 6, name: 'Eval Runner', status: '🔲 Phase 6', color: chalk.dim },
   ];
 
   console.log(chalk.bold('  Build phases:'));
