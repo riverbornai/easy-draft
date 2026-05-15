@@ -8,16 +8,25 @@ const STEPS = [
 ];
 
 const STATUS_TO_STEP = {
-  created: -1, intake: 0, 'intake-complete': 0, 'research-ready': 0,
-  research: 1, 'research-complete': 1,
-  'writing-ready': 2, writing: 2,
-  'review-ready': 3, review: 3,
-  'eval-ready': 4, eval: 4, 'publish-ready': 5, done: 5,
+  created: -1, 
+  intake: 0, 'intake-complete': 0, 
+  'research-ready': 1, research: 1, 'research-complete': 1,
+  'writing-ready': 2, writing: 2, 'writing-complete': 2,
+  'review-ready': 3, review: 3, 
+  'publish-ready': 4, 'eval-ready': 4, eval: 4, 'eval-complete': 5,
+  publish: 5, done: 5,
 };
 
 export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1, reviewStatus = null }) {
   const activeIdx = currentStep >= 0 ? currentStep : (STATUS_TO_STEP[pipelineStatus] ?? -1);
   const isDone    = pipelineStatus === 'done';
+
+  const getDisplayStatus = (status) => {
+    if (!status || status === 'idle') return 'Idle';
+    if (status === 'eval-complete' || status === 'publish-ready') return 'Eval';
+    if (status === 'publish') return 'Publisher';
+    return status.replace(/-/g, ' ');
+  };
 
   return (
     <div className="bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl p-6">
@@ -29,7 +38,7 @@ export default function PipelineBar({ pipelineStatus = 'idle', currentStep = -1,
           pipelineStatus === 'error' ? 'bg-red-50 border-red-100 text-red-600'    :
                                        'bg-[#0D2B22] border-[#0D2B22] text-[#D4F53C]'
         }`}>
-          {pipelineStatus === 'idle' ? 'Idle' : pipelineStatus.replace(/-/g, ' ')}
+          {getDisplayStatus(pipelineStatus)}
         </span>
       </div>
 
