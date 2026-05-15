@@ -9,52 +9,49 @@ import { broadcastEvent } from '../server.js';
 import {
   activeRuns,
   historicalRuns,
-  PIPELINE_STAGES,
-  mockAgentLog,
-  mockDrafts,
-  mockEvalScores,
 } from '../mockStore.js';
+import { runPipeline } from '../../orchestrator.js';
+import { createSession, updateSession } from '../../session.js';
 
 const router = Router();
-
-import { runPipeline } from '../../orchestrator.js';
-
-import { createSession, updateSession } from '../../session.js';
 
 // ── POST /api/run/start ───────────────────────────────────────────────────────
 router.post('/start', async (req, res) => {
   try {
     const { topic, context, tone, audience, channel, angle } = req.body;
+    console.log('[API] /api/run/start received:', { topic, channel });
 
     // Create session first so we can return the ID
-    const session = createSession();
+    const session = await createSession();
+    if (!session || !session.sessionId) {
+      throw new Error('Failed to create session or sessionId is missing.');
+    }
+    
     console.log('[API] Created session:', session.sessionId);
     
-    activeRuns.set(session.sessionId, session);
+    // Update memory proxy
+    await activeRuns.set(session.sessionId, session);
 
-    // We respond immediately to the frontend with the runId
+    // Respond immediately
     res.status(201).json({ 
       id: session.sessionId,
       runId: session.sessionId,
       sessionId: session.sessionId
     });
 
-    // Run the real pipeline in the background
-    // (Note: This runs outside the request/response cycle)
+    // Background pipeline
     runPipeline({
        preFilledBrief: { topic, context, tone, audience, channel, angle },
        sessionId: session.sessionId
-    }).then(finalSession => {
-      // Update activeRuns so the polling/SSE picks up the final state
-      activeRuns.set(finalSession.sessionId, finalSession);
+    }).then(async finalSession => {
+      if (!finalSession) return;
       
-      // Add to historical runs for leaderboard
       const hist = historicalRuns.find(r => r.id === finalSession.sessionId);
       if (!hist) {
          historicalRuns.push({
            id:             finalSession.sessionId,
-           topic:          finalSession.brief.topic,
-           channel:        finalSession.brief.channel,
+           topic:          finalSession.brief?.topic || 'N/A',
+           channel:        finalSession.brief?.channel || 'N/A',
            winner:         finalSession.activeModel || 'gpt4o',
            approvedDraft:  finalSession.approvedDraft,
            gpt4oDraft:     finalSession.gpt4oDraft,
@@ -65,24 +62,28 @@ router.post('/start', async (req, res) => {
            publishedPath:  finalSession.publishedPath
          });
       }
-    }).catch(err => {
+    }).catch(async err => {
       console.error('Background pipeline error:', err);
-      updateSession(session.sessionId, { pipelineStatus: 'error' });
+      try {
+        await updateSession(session.sessionId, { pipelineStatus: 'error' });
+      } catch (e) {
+        console.error('Failed to update session error status:', e);
+      }
     });
   } catch (err) {
-    console.error('Route error:', err);
+    console.error('Route error in /api/run/start:', err);
     res.status(500).json({ error: 'Internal Server Error', message: err.message });
   }
 });
 
 // ── GET /api/run/status/:id ───────────────────────────────────────────────────
-router.get('/status/:id', (req, res) => {
+router.get('/status/:id', async (req, res) => {
   const id = req.params.id;
-  let run = activeRuns.get(id);
+  let run = await activeRuns.get(id);
   
   // If not found, try with session_ prefix for active runs
   if (!run && !id.startsWith('session_')) {
-    run = activeRuns.get(`session_${id}`);
+    run = await activeRuns.get(`session_${id}`);
   }
 
   // If still not found, check historical runs
@@ -102,13 +103,23 @@ router.get('/status/:id', (req, res) => {
 });
 
 // ── GET /api/run/list ─────────────────────────────────────────────────────────
-router.get('/list', (_req, res) => {
-  const all = [
-    ...[...activeRuns.values()],
-    ...historicalRuns.filter(h => !activeRuns.has(h.id)),
-  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+router.get('/list', async (_req, res) => {
+  try {
+    const activeValues = (await activeRuns.values()) || [];
+    const all = [
+      ...activeValues,
+      ...historicalRuns.filter(h => !activeValues.some(av => (av.sessionId === h.id || av.id === h.id))),
+    ].sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.ts || 0);
+      const dateB = new Date(b.createdAt || b.ts || 0);
+      return dateB - dateA;
+    });
 
-  res.json(all);
+    res.json(all);
+  } catch (err) {
+    console.error('List error:', err);
+    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+  }
 });
 
 export default router;
