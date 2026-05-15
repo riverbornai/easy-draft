@@ -64,10 +64,10 @@ Return ONLY valid JSON:
     console.log(chalk.green('  📊  Evaluation complete'));
     console.log(chalk.dim(`      Overall: ${scores.overall}/10`));
 
-    return updateSession(sessionId, {
+    return await updateSession(sessionId, {
       evalScores: scores,
       currentStep: 4,
-      pipelineStatus: 'eval'
+      pipelineStatus: 'eval-complete'
     });
   } catch (err) {
     console.error(chalk.red('  [EvalRunner] Error:'), err.message);
