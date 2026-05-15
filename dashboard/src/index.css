@@ -29,16 +29,28 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--brand-stone); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand-river-mist); }
 
-/* Smooth animations */
-.fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Pulse dot animation */
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.1); }
+/* Shimmer animation for progress bar connectors */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
-.pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth slide animation for content transitions */
+.smooth-slide {
+  animation: smoothSlide 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes smoothSlide {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Micro-transition for hover effects */
+.transition-smooth {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
 .glass-card {
   background: rgba(255, 255, 255, 0.8);

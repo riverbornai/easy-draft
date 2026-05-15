@@ -350,7 +350,7 @@ export default function Runs() {
                   {/* Detail Content Area */}
                   {viewMode === 'output' ? (
                     /* Post Content View - Restored actual content display */
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="smooth-slide">
                       <div className="bg-white rounded-[3rem] p-10 border border-[#E8EDE6] relative group shadow-2xl shadow-[#0D2B22]/5">
                         <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-3">
                           <button 
