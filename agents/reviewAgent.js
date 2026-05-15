@@ -139,8 +139,8 @@ async function webHITL(sessionId) {
   const start = Date.now();
 
   return new Promise((resolve, reject) => {
-    const poll = setInterval(() => {
-      const session = getSession(sessionId);
+    const poll = setInterval(async () => {
+      const session = await getSession(sessionId);
       if (!session) {
         clearInterval(poll);
         reject(new Error('Session not found during web HITL wait.'));
@@ -175,12 +175,12 @@ export async function runReviewAgent(session) {
   const { sessionId } = session;
 
   // Refresh session state in case web UI changed it
-  const current = getSession(sessionId) ?? session;
+  const current = (await getSession(sessionId)) ?? session;
 
   console.log('\n' + chalk.bold.bgYellow.black(' REVIEW AGENT ') + chalk.bold.white(' Phase 4 — Guardrail + HITL'));
   console.log(chalk.dim('─'.repeat(60)));
 
-  updateSession(sessionId, { pipelineStatus: 'review', currentStep: 3 });
+  await updateSession(sessionId, { pipelineStatus: 'review', currentStep: 3 });
 
   // ── Pick the draft to review ───────────────────────────────────────────────
   // Default: GPT-4o draft. Fall back to Claude if GPT-4o not available.
@@ -190,9 +190,9 @@ export async function runReviewAgent(session) {
     : (current.gpt4oDraft ?? current.claudeDraft);
 
   if (!draft) {
-    logError(sessionId, 'review-no-draft', 'No draft found in session');
+    await logError(sessionId, 'review-no-draft', 'No draft found in session');
     console.log(chalk.red('  ❌  No draft found in session — skipping review.'));
-    return updateSession(sessionId, { reviewStatus: 'escalated', pipelineStatus: 'escalated' });
+    return await updateSession(sessionId, { reviewStatus: 'escalated', pipelineStatus: 'escalated' });
   }
 
   const attempt = (current.reviewAttempts ?? 0) + 1;
@@ -202,14 +202,14 @@ export async function runReviewAgent(session) {
   // Guard: too many attempts → escalate
   if (attempt > MAX_REVIEW_ATTEMPTS) {
     console.log(chalk.red(`\n  ⚠  Maximum review attempts (${MAX_REVIEW_ATTEMPTS}) reached — escalating.`));
-    return updateSession(sessionId, {
+    return await updateSession(sessionId, {
       reviewAttempts: attempt,
       reviewStatus:   'escalated',
       pipelineStatus: 'escalated',
     });
   }
 
-  updateSession(sessionId, { reviewAttempts: attempt });
+  await updateSession(sessionId, { reviewAttempts: attempt });
 
   let approvedDraft = null;
   let reviewResult  = null;
@@ -233,11 +233,11 @@ export async function runReviewAgent(session) {
 
       console.log(chalk.red('\n  Draft blocked by output guardrail. Sending back to Writer Agent.'));
 
-      appendHistory(sessionId, 'assistant',
+      await appendHistory(sessionId, 'assistant',
         `ReviewAgent: Draft blocked (attempt ${attempt}). Issues: ${issues.join('; ')}`
       );
 
-      reviewResult = updateSession(sessionId, {
+      reviewResult = await updateSession(sessionId, {
         reviewStatus:   'rejected',
         reviewNotes:    [...(current.reviewNotes ?? []), reason],
         pipelineStatus: 'writing',  // signal orchestrator to re-run Writer
@@ -247,7 +247,7 @@ export async function runReviewAgent(session) {
 
     // Log any warnings (medium severity)
     if (guardrailResult.outputInfo?.severity === 'medium') {
-      updateSession(sessionId, {
+      await updateSession(sessionId, {
         reviewNotes: [
           ...(current.reviewNotes ?? []),
           `Warning: ${guardrailResult.outputInfo.reason}`,
@@ -257,7 +257,7 @@ export async function runReviewAgent(session) {
 
     // ── Step 2: HITL ─────────────────────────────────────────────────────────
     // Set status to pending so web UI can show the HITL banner
-    updateSession(sessionId, { reviewStatus: 'pending' });
+    await updateSession(sessionId, { reviewStatus: 'pending' });
 
     let hitlResult;
 
@@ -273,7 +273,7 @@ export async function runReviewAgent(session) {
     // ── Step 3: Process HITL decision ─────────────────────────────────────────
     if (hitlResult.decision === 'approved') {
       // Re-read session to see which model the user actually picked in the web UI
-      const updatedSession = getSession(sessionId) || session;
+      const updatedSession = (await getSession(sessionId)) || session;
       const modelPicked = updatedSession.activeModel || activeModel;
       
       // If the web UI already set approvedDraft, use it. Otherwise calculate it.
@@ -281,9 +281,9 @@ export async function runReviewAgent(session) {
         ? (updatedSession.claudeDraft || updatedSession.gpt4oDraft)
         : (updatedSession.gpt4oDraft || updatedSession.claudeDraft));
 
-      appendHistory(sessionId, 'assistant', `ReviewAgent: Draft approved by human (attempt ${attempt}, model: ${modelPicked}).`);
+      await appendHistory(sessionId, 'assistant', `ReviewAgent: Draft approved by human (attempt ${attempt}, model: ${modelPicked}).`);
 
-      reviewResult = updateSession(sessionId, {
+      reviewResult = await updateSession(sessionId, {
         approvedDraft,
         activeModel:    modelPicked,
         reviewStatus:   'approved',
@@ -294,9 +294,9 @@ export async function runReviewAgent(session) {
 
     } else if (hitlResult.decision === 'edited') {
       approvedDraft = hitlResult.editedDraft;
-      appendHistory(sessionId, 'assistant', `ReviewAgent: Draft edited and approved by human (attempt ${attempt}).`);
+      await appendHistory(sessionId, 'assistant', `ReviewAgent: Draft edited and approved by human (attempt ${attempt}).`);
 
-      reviewResult = updateSession(sessionId, {
+      reviewResult = await updateSession(sessionId, {
         approvedDraft,
         reviewStatus:   'approved',
         pipelineStatus: 'publish-ready',
@@ -312,13 +312,13 @@ export async function runReviewAgent(session) {
     } else {
       // Rejected
       const feedback = hitlResult.feedback ?? 'No specific feedback provided.';
-      appendHistory(sessionId, 'user', `Human rejected draft (attempt ${attempt}): ${feedback}`);
-      appendHistory(sessionId, 'assistant', `ReviewAgent: Sending draft back to Writer with feedback.`);
+      await appendHistory(sessionId, 'user', `Human rejected draft (attempt ${attempt}): ${feedback}`);
+      await appendHistory(sessionId, 'assistant', `ReviewAgent: Sending draft back to Writer with feedback.`);
 
       console.log(chalk.yellow(`\n  ↩  Draft rejected — feedback sent to Writer Agent.`));
       console.log(chalk.dim(`     Feedback: "${feedback}"`));
 
-      reviewResult = updateSession(sessionId, {
+      reviewResult = await updateSession(sessionId, {
         reviewStatus:   'rejected',
         reviewNotes:    [...(current.reviewNotes ?? []), feedback],
         pipelineStatus: 'writing',  // orchestrator will re-run Writer
@@ -328,7 +328,7 @@ export async function runReviewAgent(session) {
   }); // end withTrace
 
   // ── Summary ───────────────────────────────────────────────────────────────
-  const finalSession = getSession(sessionId) ?? reviewResult;
+  const finalSession = (await getSession(sessionId)) ?? reviewResult;
   console.log('\n' + chalk.dim('─'.repeat(60)));
   console.log(chalk.dim(`  Review status:   ${finalSession?.reviewStatus}`));
   console.log(chalk.dim(`  Attempts used:   ${finalSession?.reviewAttempts}/${MAX_REVIEW_ATTEMPTS}`));
