@@ -67,7 +67,7 @@ export async function runWriterAgent(session, feedback = null) {
     throw new Error('[WriterAgent] No fact sheet found in session. Research must run first.');
   }
 
-  updateSession(sessionId, { pipelineStatus: 'writing', currentStep: 2 });
+  await updateSession(sessionId, { pipelineStatus: 'writing', currentStep: 2 });
 
   let gpt4oDraft;
   let claudeDraft;
@@ -93,7 +93,7 @@ export async function runWriterAgent(session, feedback = null) {
     }
   });
 
-  const updatedSession = updateSession(sessionId, {
+  const updatedSession = await updateSession(sessionId, {
     gpt4oDraft,
     claudeDraft,
     pipelineStatus: 'review-ready'
