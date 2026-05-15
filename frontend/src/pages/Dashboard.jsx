@@ -17,8 +17,14 @@ export default function Dashboard() {
         axios.get('/api/run/list'),
       ]);
       setMetrics(m.data);
-      setRuns(r.data.slice(0, 5));
-    } catch (_) {
+      if (Array.isArray(r.data)) {
+        setRuns(r.data.slice(0, 5));
+      } else {
+        console.error('Expected array for runs, got:', r.data);
+        setRuns([]);
+      }
+    } catch (err) {
+      console.error('Dashboard refresh error:', err);
     } finally {
       setLoading(false);
     }
