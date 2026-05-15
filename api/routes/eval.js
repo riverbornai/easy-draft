@@ -9,19 +9,21 @@ import { mockEvalScores, historicalRuns, activeRuns } from '../mockStore.js';
 const router = Router();
 
 // ── GET /api/eval/scores ──────────────────────────────────────────────────────
-router.get('/scores', (_req, res) => {
-  const doneRun = [...activeRuns.values()].find(r => r.evalScores);
+router.get('/scores', async (_req, res) => {
+  const activeValues = await activeRuns.values();
+  const doneRun = activeValues.find(r => r.evalScores?.overall);
   res.json(doneRun?.evalScores ?? mockEvalScores);
 });
 
 // ── GET /api/eval/leaderboard ─────────────────────────────────────────────────
-router.get('/leaderboard', (_req, res) => {
-  const activeDone = [...activeRuns.values()]
+router.get('/leaderboard', async (_req, res) => {
+  const activeValues = await activeRuns.values();
+  const activeDone = activeValues
     .filter(r => r.pipelineStatus === 'done')
     .map(r => ({
        id: r.sessionId,
-       topic: r.brief.topic,
-       channel: r.brief.channel,
+       topic: r.brief?.topic,
+       channel: r.brief?.channel,
        gpt4oScore: r.evalScores?.overall,
        claudeScore: (r.evalScores?.overall ?? 0) - 0.5, // simulated for leaderboard
        winner: 'gpt4o',
