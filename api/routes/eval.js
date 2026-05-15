@@ -4,7 +4,7 @@
  * GET /api/eval/leaderboard — all historical runs with scores
  */
 import { Router } from 'express';
-import { mockEvalScores, historicalRuns, activeRuns } from '../mockStore.js';
+import { activeRuns } from '../mockStore.js';
 
 const router = Router();
 
@@ -12,31 +12,31 @@ const router = Router();
 router.get('/scores', async (_req, res) => {
   const activeValues = await activeRuns.values();
   const doneRun = activeValues.find(r => r.evalScores?.overall);
-  res.json(doneRun?.evalScores ?? mockEvalScores);
+  res.json(doneRun?.evalScores ?? {
+    accuracy: 0,
+    toneMatch: 0,
+    formatCompliance: 0,
+    hookStrength: 0,
+    overall: 0
+  });
 });
 
 // ── GET /api/eval/leaderboard ─────────────────────────────────────────────────
 router.get('/leaderboard', async (_req, res) => {
   const activeValues = await activeRuns.values();
   const activeDone = activeValues
-    .filter(r => r.pipelineStatus === 'done')
+    .filter(r => r.pipelineStatus === 'done' || r.status === 'done')
     .map(r => ({
        id: r.sessionId,
        topic: r.brief?.topic,
        channel: r.brief?.channel,
        gpt4oScore: r.evalScores?.overall,
-       claudeScore: (r.evalScores?.overall ?? 0) - 0.5, // simulated for leaderboard
-       winner: 'gpt4o',
-       createdAt: r.createdAt
+       claudeScore: (r.evalScores?.overall ?? 0.5) - 0.5, 
+       winner: r.activeModel || 'gpt4o',
+       createdAt: r.createdAt || r.updatedAt
     }));
 
-  // Unique runs by ID using a Map (keeps the last occurrence)
-  const runsMap = new Map();
-  [...historicalRuns, ...activeDone].forEach(run => {
-    runsMap.set(run.id, run);
-  });
-
-  const allRuns = Array.from(runsMap.values())
+  const allRuns = activeDone
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 10);
 
@@ -46,5 +46,6 @@ router.get('/leaderboard', async (_req, res) => {
 
   res.json({ runs: allRuns, gpt4oWins, claudeWins, overallWinner });
 });
+
 
 export default router;
