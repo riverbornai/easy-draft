@@ -128,8 +128,8 @@ async function main() {
   console.log(chalk.dim(`  Channel:         ${session.brief?.channel ?? 'N/A'}`));
   console.log(chalk.dim(`  Pipeline status: ${session.pipelineStatus}`));
 
-  if (session.errors?.length > 0) {
-    console.log(chalk.yellow(`\n  ⚠  ${session.errors.length} non-fatal error(s) recorded — check session.errors`));
+  if (session.pipelineErrors?.length > 0) {
+    console.log(chalk.yellow(`\n  ⚠  ${session.pipelineErrors.length} non-fatal error(s) recorded — check session.pipelineErrors`));
   }
 
   console.log('');
