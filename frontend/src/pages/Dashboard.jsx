@@ -42,9 +42,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-10 max-w-6xl mx-auto fade-in">
+    <div className="p-6 md:p-8 max-w-6xl mx-auto fade-in">
       {/* Header */}
-      <div className="mb-10 flex items-end justify-between">
+      <div className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="text-4xl font-black text-[#0D2B22] tracking-tighter">Overview</h1>
           <p className="text-sm text-[#1A4435] mt-1 font-semibold uppercase tracking-wider">Riverborn Content Studio</p>
@@ -59,7 +59,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Metric cards ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-3 gap-6 mb-8">
         <ScoreCard
           label="Total Content Runs"
           value={metrics?.totalRuns ?? '—'}
@@ -89,7 +89,7 @@ export default function Dashboard() {
 
       {/* ── Recent Runs ──────────────────────────────────────────────────────── */}
       <div>
-        <div className="flex items-center justify-between mb-8 px-2">
+        <div className="flex items-center justify-between mb-4 px-2">
           <h3 className="text-xs font-black text-[#0D2B22] uppercase tracking-[0.2em]">Recent Activity</h3>
           <button 
             onClick={() => navigate('/runs')}
