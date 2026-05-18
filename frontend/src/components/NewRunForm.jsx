@@ -90,13 +90,13 @@ export default function NewRunForm() {
   };
 
   return (
-    <div className="fade-in max-w-3xl mx-auto pt-6">
-      <div className="mb-8">
+    <div className="fade-in max-w-3xl mx-auto pt-2">
+      <div className="mb-6">
         <h1 className="text-3xl font-black text-[#0D2B22] leading-tight tracking-tight">Create New Run</h1>
         <p className="text-sm text-[#1A4435] font-semibold uppercase tracking-wider mt-2">Define your content brief to start the automated pipeline</p>
       </div>
 
-      <form onSubmit={submit} className="bg-white border border-[#E8EDE6] rounded-[2.5rem] p-10 shadow-sm space-y-8">
+      <form onSubmit={submit} className="bg-white border border-[#E8EDE6] rounded-[2.5rem] p-8 shadow-sm space-y-6">
         
         {/* Topic */}
         <div>
@@ -108,7 +108,7 @@ export default function NewRunForm() {
             value={form.topic}
             onChange={e => set('topic', e.target.value)}
             placeholder='e.g. "Future of AI in Software Engineering"'
-            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 h-[58px]"
+            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-3 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 h-[48px]"
           />
         </div>
 
@@ -122,7 +122,7 @@ export default function NewRunForm() {
             value={form.context}
             onChange={e => set('context', e.target.value)}
             placeholder='Provide background, specific points to cover, or source materials...'
-            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] placeholder-[#1A4435]/50 resize-none focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300"
+            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-3 text-[#0D2B22] placeholder-[#1A4435]/50 resize-none focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300"
           />
         </div>
 
@@ -134,13 +134,13 @@ export default function NewRunForm() {
               <select
                 value={form.tone}
                 onChange={e => set('tone', e.target.value)}
-                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer appearance-none font-black uppercase text-[10px] tracking-widest h-[58px]"
+                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-3 text-[#0D2B22] focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer appearance-none font-black uppercase text-[10px] tracking-widest h-[48px]"
               >
                 {TONES.map(t => (
                   <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                 ))}
               </select>
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-[#1A4435]">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#1A4435]">
                 <ChevronDown size={14} />
               </div>
             </div>
@@ -155,7 +155,7 @@ export default function NewRunForm() {
               <div 
                 tabIndex="0"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 min-h-[58px] flex flex-wrap gap-2 focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer relative pr-12 items-center"
+                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-3 min-h-[48px] flex flex-wrap gap-2 focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer relative pr-10 items-center"
               >
                 {form.audience.length === 0 ? (
                   <span className="text-[#1A4435] text-sm px-2 font-medium">Select target audience...</span>
@@ -173,7 +173,7 @@ export default function NewRunForm() {
                     </span>
                   ))
                 )}
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[#1A4435] pointer-events-none">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1A4435] pointer-events-none">
                   <ChevronDown size={14} />
                 </div>
               </div>
@@ -217,7 +217,7 @@ export default function NewRunForm() {
                 key={ch.id}
                 type="button"
                 onClick={() => set('channel', ch.id)}
-                className={`flex flex-col items-center gap-3 py-5 rounded-2xl border text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
+                className={`flex flex-col items-center gap-2 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${
                   form.channel === ch.id
                     ? 'border-[#0D2B22] bg-[#F2FFEE] text-[#0D2B22] shadow-sm shadow-[#0D2B22]/10 scale-[1.02]'
                     : 'border-[#E8EDE6] bg-[#F2FFEE]/30 text-[#1A4435] hover:border-[#1A4435] hover:bg-[#F2FFEE]/50 hover:text-[#0D2B22]'
@@ -240,7 +240,7 @@ export default function NewRunForm() {
             value={form.angle}
             onChange={e => set('angle', e.target.value)}
             placeholder='e.g. "Focus on ROI over features"'
-            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-6 py-4 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 h-[58px]"
+            className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-3 text-[#0D2B22] placeholder-[#1A4435]/50 focus:outline-none focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 h-[48px]"
           />
         </div>
 
