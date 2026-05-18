@@ -34,16 +34,20 @@ ${JSON.stringify(factSheet, null, 2)}
 
 GUIDELINES:
 - Tone: ${brief.tone}
-- Format: ${brief.channel}
+- Format: ${brief.channel} (Must be extremely professional format)
 - Angle: ${brief.angle || 'Standard professional'}
 - Use the key points and supporting facts from the research.
 - Ensure the content is engaging and has a strong hook.
-- CRITICAL: DO NOT use any emojis, icons, or special visual symbols in the text. Keep it clean and text-only.
+- CRITICAL RESTRICTIONS:
+  1. DO NOT use any hashtags anywhere in the text.
+  2. DO NOT use any numbers anywhere in the text (spell them out or rephrase).
+  3. DO NOT use any emojis, icons, or special visual symbols. Keep it clean and text-only.
+  4. The format must be strictly professional and business-appropriate.
 
 ${feedback ? `CRITICAL FEEDBACK FROM PREVIOUS DRAFT (FIX THESE): ${feedback}` : ''}
 `;
 
-  const userPrompt = `Write the content draft now. Return only the content, no conversational filler. DO NOT include any emojis or icons.`;
+  const userPrompt = `Write the content draft now. Return only the content, no conversational filler. Remember: NO hashtags, NO numbers, NO emojis/icons, and keep the format strictly professional.`;
 
   const response = await openai.chat.completions.create({
     model: model === 'gpt4o' ? 'gpt-4o' : 'gpt-4o-mini', // Simulating dual models
