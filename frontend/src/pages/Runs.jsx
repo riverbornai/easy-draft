@@ -180,7 +180,7 @@ export default function Runs() {
     <div className="flex h-screen overflow-hidden fade-in bg-white">
       {/* Sidebar List */}
       <div className="w-80 border-r border-[#E8EDE6] flex flex-col bg-[#F2FFEE]/30">
-        <div className="p-6 border-b border-[#E8EDE6] bg-white">
+        <div className="p-3 border-b border-[#E8EDE6] bg-white">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-black text-[#0D2B22] flex items-center gap-2">
               <Clock size={20} className="text-[#0D2B22]" />
@@ -213,7 +213,7 @@ export default function Runs() {
                   <button
                     key={rawRunId}
                     onClick={() => navigate(`/runs/${runId}`)}
-                    className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 flex flex-col gap-3 group relative overflow-hidden ${
+                    className={`w-full text-left p-3 rounded-2xl border transition-all duration-300 flex flex-col gap-2 group relative overflow-hidden ${
                       isSelected
                         ? 'bg-white border-[#0D2B22] shadow-[0_8px_30px_rgb(13,43,34,0.08)] scale-[1.02] z-10'
                         : 'bg-white/40 border-[#E8EDE6] hover:border-[#1A4435] hover:bg-white hover:shadow-sm'
@@ -270,9 +270,9 @@ export default function Runs() {
           {selectedRun ? (
             <>
               {/* Detail Header */}
-              <div className="px-12 pt-12 pb-8 border-b border-[#E8EDE6] sticky top-0 bg-white/80 backdrop-blur-md z-10 shadow-sm shadow-[#0D2B22]/5">
+              <div className="px-8 pt-8 pb-4 border-b border-[#E8EDE6] sticky top-0 bg-white/80 backdrop-blur-md z-10 shadow-sm shadow-[#0D2B22]/5">
                 <div className="max-w-4xl mx-auto">
-                  <div className="flex flex-wrap gap-3 mb-6">
+                  <div className="flex flex-wrap gap-3 mb-4">
                     <div className="bg-[#F2FFEE] px-3 py-1.5 rounded-xl flex items-center gap-2 border border-[#9FCEBE]/30">
                       <span className="text-[9px] text-[#1A4435] uppercase font-black tracking-widest opacity-60">Channel</span>
                       <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-wider">{selectedRun.channel || selectedRun.brief?.channel}</span>
@@ -309,7 +309,7 @@ export default function Runs() {
                     )}
                   </div>
                   
-                  <h2 className="text-4xl font-black text-[#0D2B22] mb-8 leading-tight tracking-tighter">
+                  <h2 className="text-4xl font-black text-[#0D2B22] mb-4 leading-tight tracking-tighter">
                     {selectedRun.topic || selectedRun.brief?.topic}
                   </h2>
                   
@@ -343,11 +343,11 @@ export default function Runs() {
               </div>
 
               {/* Detail Content */}
-              <div className="flex-1 p-12 overflow-y-auto custom-scrollbar">
+              <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
                 <div className="max-w-4xl mx-auto fade-in">
                   {/* Global Pipeline Progress - Only show in Output mode if awaiting review, otherwise show in Pipeline mode */}
                   {(viewMode === 'pipeline' || (selectedRun.pipelineStatus === 'review' && selectedRun.reviewStatus === 'pending')) && (
-                    <div className="mb-10">
+                    <div className="mb-6">
                       <PipelineBar 
                         pipelineStatus={selectedRun.pipelineStatus || selectedRun.status} 
                         currentStep={selectedRun.currentStep ?? (selectedRun.status === 'done' ? 5 : -1)} 
@@ -360,7 +360,7 @@ export default function Runs() {
                   {viewMode === 'output' ? (
                     /* Post Content View - Restored actual content display */
                     <div className="smooth-slide">
-                      <div className="bg-white rounded-[3rem] p-10 border border-[#E8EDE6] relative group shadow-2xl shadow-[#0D2B22]/5">
+                      <div className="bg-white rounded-[2rem] p-8 border border-[#E8EDE6] relative group shadow-2xl shadow-[#0D2B22]/5">
                         <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-3">
                           <button 
                             onClick={handleCopy}
@@ -432,7 +432,7 @@ export default function Runs() {
                     </div>
                   ) : (
                     /* Pipeline (Trace) View */
-                    <div className="space-y-10 fade-in">
+                    <div className="space-y-6 fade-in">
                       {/* HITL Review Interface - Now shown within the Trace tab */}
                       {(selectedRun.pipelineStatus === 'review' && selectedRun.reviewStatus === 'pending') && (
                         <div className="space-y-10 animate-in slide-in-from-bottom-8 duration-700">
@@ -524,7 +524,7 @@ export default function Runs() {
             </div>
           </>
         ) : isCreating ? (
-          <div className="flex-1 overflow-y-auto bg-[#F2FFEE]/10 p-12">
+          <div className="flex-1 overflow-y-auto bg-[#F2FFEE]/10 p-8">
             <NewRunForm />
           </div>
         ) : (id && !selectedRun) ? (
