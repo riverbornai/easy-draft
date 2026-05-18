@@ -58,9 +58,6 @@ export default function Eval() {
 
       {/* Bar chart */}
       <div className="bg-white border border-[#E8EDE6] rounded-[1.5rem] p-6 mb-6 shadow-sm relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500">
-          <BarChart3 size={140} />
-        </div>
         <h3 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-8">Performance Trajectory</h3>
         <div className="flex items-end gap-6 h-56 overflow-x-auto pb-6 custom-scrollbar">
           {runs.slice(0, 12).reverse().map((run, i) => (
