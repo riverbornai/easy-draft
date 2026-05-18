@@ -25,8 +25,8 @@ export default function Eval() {
   const winner = leaderboard?.overallWinner;
 
   return (
-    <div className="p-12 max-w-[70rem] mx-auto fade-in">
-      <div className="mb-10">
+    <div className="p-6 max-w-[70rem] mx-auto fade-in">
+      <div className="mb-6">
         <h1 className="text-3xl font-black text-[#0D2B22] flex items-center gap-3 tracking-tight">
           <BarChart3 size={28} className="text-[#0D2B22]" />
           Intelligence Analysis
@@ -35,7 +35,7 @@ export default function Eval() {
       </div>
 
       {winner && (
-        <div className="mb-12 flex items-center gap-6 px-10 py-8 rounded-[2.5rem] bg-white border border-[#E8EDE6] shadow-2xl shadow-[#0D2B22]/5 fade-in relative overflow-hidden group">
+        <div className="mb-8 flex items-center gap-6 px-8 py-6 rounded-[2rem] bg-white border border-[#E8EDE6] shadow-2xl shadow-[#0D2B22]/5 fade-in relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-48 h-48 bg-[#F2FFEE] rounded-full -mr-24 -mt-24 opacity-40 group-hover:scale-110 transition-transform duration-1000" />
           <div className="p-5 rounded-2xl bg-[#0D2B22] text-[#D4F53C] shadow-lg z-10">
             <Trophy size={32} />
@@ -57,11 +57,11 @@ export default function Eval() {
       )}
 
       {/* Bar chart */}
-      <div className="bg-white border border-[#E8EDE6] rounded-[2.5rem] p-10 mb-10 shadow-sm relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500">
+      <div className="bg-white border border-[#E8EDE6] rounded-[1.5rem] p-6 mb-6 shadow-sm relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500">
           <BarChart3 size={140} />
         </div>
-        <h3 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-12">Performance Trajectory</h3>
+        <h3 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-8">Performance Trajectory</h3>
         <div className="flex items-end gap-6 h-56 overflow-x-auto pb-6 custom-scrollbar">
           {runs.slice(0, 12).reverse().map((run, i) => (
             <div key={`${run.id}-${i}`} className="flex flex-col items-center gap-3 flex-shrink-0 min-w-[80px] group/bar">
@@ -80,7 +80,7 @@ export default function Eval() {
           ))}
           {runs.length === 0 && <div className="flex-1 flex items-center justify-center text-[#1A4435]/30 text-sm font-black uppercase tracking-widest py-20">No evaluation data available</div>}
         </div>
-        <div className="flex gap-8 mt-8 pt-8 border-t border-[#E8EDE6]">
+        <div className="flex gap-8 mt-6 pt-6 border-t border-[#E8EDE6]">
           <span className="flex items-center gap-3 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">
             <span className="w-4 h-4 bg-[#D4F53C] rounded-lg shadow-md border border-[#D4F53C]/20" />GPT-4o
           </span>
@@ -91,8 +91,8 @@ export default function Eval() {
       </div>
 
       {/* Leaderboard */}
-      <div className="bg-white border border-[#E8EDE6] rounded-[2.5rem] overflow-hidden shadow-sm">
-        <div className="px-10 py-8 border-b border-[#E8EDE6] flex items-center justify-between bg-[#F2FFEE]/30">
+      <div className="bg-white border border-[#E8EDE6] rounded-[1.5rem] overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-[#E8EDE6] flex items-center justify-between bg-[#F2FFEE]/30">
           <h3 className="text-[12px] font-black text-[#0D2B22] uppercase tracking-[0.2em] flex items-center gap-3">
             <ListOrdered size={16} />
             Intelligence Leaderboard
@@ -106,7 +106,7 @@ export default function Eval() {
             <thead>
               <tr className="bg-[#E8EDE6]/20 border-b border-[#E8EDE6]">
                 {['#', 'Session Topic', 'Platform', 'Winner', 'GPT-4o', 'Claude'].map(h => (
-                  <th key={h} className="text-left px-8 py-5 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">{h}</th>
+                  <th key={h} className="text-left px-6 py-4 text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em]">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -115,18 +115,18 @@ export default function Eval() {
                 ? <tr><td colSpan={6} className="text-center py-20 text-[#1A4435]/40 text-xs font-black uppercase tracking-[0.2em]">No session data available</td></tr>
                 : runs.map((run, i) => (
                   <tr key={`${run.id}-${i}`} className="hover:bg-[#F2FFEE]/20 transition-all duration-300 group">
-                    <td className="px-8 py-5 text-[#1A4435]/30 text-[10px] font-black">{i + 1}</td>
-                    <td className="px-8 py-5">
+                    <td className="px-6 py-4 text-[#1A4435]/30 text-[10px] font-black">{i + 1}</td>
+                    <td className="px-6 py-4">
                       <p className="text-[#0D2B22] text-[13px] font-black truncate max-w-[280px] group-hover:translate-x-1 transition-transform">
                         {run.topic}
                       </p>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-6 py-4">
                       <span className="text-[10px] font-black bg-white text-[#1A4435] px-3 py-1.5 rounded-xl uppercase tracking-wider border border-[#E8EDE6] shadow-sm">
                         {run.channel}
                       </span>
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-6 py-4">
                       {run.winner
                         ? <span className={`text-[10px] font-black px-4 py-2 rounded-xl border uppercase tracking-widest transition-all ${run.winner === 'gpt4o'
                           ? 'bg-[#1A4435] text-[#D4F53C] border-[#1A4435] shadow-lg shadow-[#1A4435]/10'
@@ -136,8 +136,8 @@ export default function Eval() {
                         </span>
                         : <span className="text-[#E8EDE6] text-xs">—</span>}
                     </td>
-                    <td className="px-8 py-5 w-48"><MiniBar score={run.gpt4oScore} model="gpt4o" /></td>
-                    <td className="px-8 py-5 w-48"><MiniBar score={run.claudeScore} model="claude" /></td>
+                    <td className="px-6 py-4 w-48"><MiniBar score={run.gpt4oScore} model="gpt4o" /></td>
+                    <td className="px-6 py-4 w-48"><MiniBar score={run.claudeScore} model="claude" /></td>
                   </tr>
                 ))
               }
