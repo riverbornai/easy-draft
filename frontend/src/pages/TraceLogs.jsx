@@ -47,8 +47,8 @@ export default function TraceLogs() {
   );
 
   return (
-    <div className="p-12 max-w-6xl mx-auto fade-in">
-      <div className="mb-10 flex items-center justify-between">
+    <div className="p-6 max-w-6xl mx-auto fade-in">
+      <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-black text-[#0D2B22] tracking-tighter flex items-center gap-3">
             <Activity size={32} strokeWidth={3} className="text-[#0D2B22]" />
@@ -63,7 +63,7 @@ export default function TraceLogs() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-6 mb-10 bg-white border border-[#E8EDE6] rounded-[2rem] p-8 shadow-xl shadow-[#0D2B22]/5 overflow-x-auto items-end">
+      <div className="flex gap-4 mb-4 bg-white border border-[#E8EDE6] rounded-[1.5rem] p-4 shadow-xl shadow-[#0D2B22]/5 overflow-x-auto items-end">
         <div className="min-w-[180px] flex-1">
           <label className="text-[10px] font-black text-[#1A4435] uppercase tracking-[0.2em] block mb-3 ml-1 flex items-center gap-2">
             <Clock size={12} /> Run Session
@@ -127,7 +127,7 @@ export default function TraceLogs() {
               const style = TYPE_STYLES[log.type] ?? TYPE_STYLES.agent;
               const Icon = style.icon;
               return (
-                <div key={log.id ?? i} className="flex items-start gap-8 px-10 py-7 hover:bg-[#F2FFEE]/20 transition-all duration-300 fade-in group relative">
+                <div key={log.id ?? i} className="flex items-start gap-4 px-6 py-3 hover:bg-[#F2FFEE]/20 transition-all duration-300 fade-in group relative">
                   {/* Timeline dot + line */}
                   <div className="flex flex-col items-center mt-2 flex-shrink-0 relative">
                     <div className={`w-3.5 h-3.5 rounded-full flex-shrink-0 z-10 border-4 border-white shadow-md transition-transform group-hover:scale-125 ${style.dot}`} />
