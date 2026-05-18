@@ -37,8 +37,7 @@ router.get('/leaderboard', async (_req, res) => {
     }));
 
   const allRuns = activeDone
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 10);
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const gpt4oWins  = allRuns.filter(r => r.winner === 'gpt4o').length;
   const claudeWins = allRuns.filter(r => r.winner === 'claude').length;
