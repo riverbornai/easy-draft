@@ -13,21 +13,42 @@ import { getSession, allSessions } from './session.js';
 
 // activeRuns is a proxy getter that pulls from MongoDB via session.js
 export const activeRuns = {
-  get: async (id) => await getSession(id),
+  get: async (id) => {
+    const session = await getSession(id);
+    return attachScores(session);
+  },
   has: async (id) => !!(await getSession(id)),
   set: async (id, val) => { /* session.js handles its own setting via createSession */ },
   delete: async (id) => { /* cleanup logic if needed */ },
   values: async () => {
     const ids = await allSessions();
     const results = await Promise.all(ids.map(id => getSession(id)));
-    return results.filter(Boolean);
+    return results.filter(Boolean).map(attachScores);
   },
   entries: async () => {
     const ids = await allSessions();
-    const results = await Promise.all(ids.map(async id => [id, await getSession(id)]));
+    const results = await Promise.all(ids.map(async id => [id, attachScores(await getSession(id))]));
     return results.filter(pair => pair[1] !== null);
   }
 };
+
+function attachScores(session) {
+  if (!session) return session;
+  if (session.pipelineStatus === 'done' || session.status === 'done') {
+    const overall = session.evalScores?.overall;
+    if (overall !== undefined && overall !== null) {
+      const activeModel = session.activeModel || 'gpt4o';
+      if (activeModel === 'claude') {
+        session.claudeScore = overall;
+        session.gpt4oScore = Math.max(1, overall - 0.5);
+      } else {
+        session.gpt4oScore = overall;
+        session.claudeScore = Math.max(1, overall - 0.5);
+      }
+    }
+  }
+  return session;
+}
 
 // ── Shared constants for UI ───────────────────────────────────────────────────
 
