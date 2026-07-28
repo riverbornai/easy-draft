@@ -30,8 +30,8 @@ router.get('/leaderboard', async (_req, res) => {
        id: r.sessionId,
        topic: r.brief?.topic,
        channel: r.brief?.channel,
-       gpt4oScore: r.evalScores?.overall,
-       claudeScore: (r.evalScores?.overall ?? 0.5) - 0.5, 
+       gpt4oScore: r.gpt4oScore,
+       claudeScore: r.claudeScore, 
        winner: r.activeModel || 'gpt4o',
        createdAt: r.createdAt || r.updatedAt
     }));
