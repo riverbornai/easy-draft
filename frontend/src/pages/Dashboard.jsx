@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Activity, TrendingUp, ArrowRight, Clock, Plus, Layout, Zap } from 'lucide-react';
+import { Activity, TrendingUp, ArrowRight, Clock, Plus, Layout, Zap, Loader2 } from 'lucide-react';
 import ScoreCard from '../components/ScoreCard.jsx';
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -101,7 +102,17 @@ export default function Dashboard() {
 
         <div className="space-y-4">
           {loading ? (
-            <div className="py-20 text-center text-[#1A4435] text-xs font-black uppercase tracking-widest">Gathering intelligence...</div>
+            <div className="bg-white/40 border border-[#E8EDE6] rounded-[2.5rem] p-16 text-center flex flex-col items-center justify-center gap-4 shadow-sm shadow-[#0D2B22]/5">
+              <div className="relative flex items-center justify-center w-14 h-14">
+                {/* Pulsing brand color background ring */}
+                <div className="absolute w-12 h-12 rounded-full border-4 border-[#D4F53C]/40 animate-ping opacity-75" />
+                {/* Rotating main loader using primary brand color */}
+                <Loader2 size={36} className="animate-spin text-[#0D2B22] relative z-10 stroke-[2.5]" />
+              </div>
+              <p className="text-xs font-black text-[#1A4435] uppercase tracking-[0.2em] animate-pulse mt-2">
+                Gathering Intelligence...
+              </p>
+            </div>
           ) : runs.length === 0 ? (
             <div className="bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-[2.5rem] p-20 text-center">
                <Layout size={64} strokeWidth={1} className="mx-auto text-[#1A4435] mb-6 opacity-40" />
