@@ -109,10 +109,14 @@ export default function Runs() {
         setTimeout(() => {
           setViewMode('output');
         }, 2000);
+        fetchRuns(true);
+      } else if (newStatus === 'error' && oldStatus !== 'error') {
+        fetchRuns(true);
       } else if (oldStatus === 'review' && selectedRun.reviewStatus === 'pending' && 
                 (newStatus !== 'review' || response.data.reviewStatus !== 'pending')) {
         // 2. Human provided feedback (approved/rejected) -> stay/back to Pipeline to see next steps
         setViewMode('pipeline');
+        fetchRuns(true);
       }
       
       // Stop polling if done or error
