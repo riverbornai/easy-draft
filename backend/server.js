@@ -3,6 +3,10 @@
  * Runs on port 3001. Provides REST + SSE endpoints for the React frontend.
  */
 import 'dotenv/config';
+import crypto from 'crypto';
+if (!global.crypto) {
+  global.crypto = crypto;
+}
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -24,14 +28,30 @@ process.on('uncaughtException', (err) => {
 
 // ── MongoDB Connection ───────────────────────────────────────────────────────
 const MONGO_URI = process.env.MONGO_DB;
-console.log(MONGO_URI, "MONGO_URI");
+import fs from 'fs';
+
+fs.writeFileSync('db_error.log', `Starting DB Connection attempt...\n`);
+
+mongoose.connection.on('error', err => {
+  fs.appendFileSync('db_error.log', `Mongoose connection error: ${err.message}\n${err.stack}\n`);
+});
+mongoose.connection.on('disconnected', () => {
+  fs.appendFileSync('db_error.log', `Mongoose disconnected\n`);
+});
+mongoose.connection.on('connected', () => {
+  fs.appendFileSync('db_error.log', `Mongoose connected successfully\n`);
+});
 
 if (!MONGO_URI) {
+  fs.appendFileSync('db_error.log', '❌ MONGO_DB is not defined in .env\n');
   console.error('❌ MONGO_DB is not defined in .env');
 } else {
   mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ Connected to MongoDB Atlas'))
-    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+    .catch(err => {
+      fs.appendFileSync('db_error.log', `Mongoose connect catch block error: ${err.message}\n`);
+      console.error('❌ MongoDB Connection Error:', err);
+    });
 }
 
 // ── SSE Bridge ───────────────────────────────────────────────────────────────
@@ -109,7 +129,13 @@ app.use((err, req, res, next) => {
 
 // ── Health ─────────────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) =>
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), clients: sseClients.size })
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(), 
+    clients: sseClients.size,
+    dbState: mongoose.connection.readyState,
+    dbStateLabel: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] ?? 'unknown'
+  })
 );
 
 app.listen(PORT, () => {
