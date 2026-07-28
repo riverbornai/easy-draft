@@ -21,8 +21,8 @@ export default function Sidebar({ apiStatus }) {
             <Cpu size={20} className="text-[#D4F53C] group-hover:scale-110 transition-transform" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-white text-lg font-black tracking-tighter leading-none">RIVERBORN</p>
-            <p className="text-[#E8EDE6] text-[10px] mt-1 font-bold uppercase tracking-[0.2em] leading-none">Studio</p>
+            <p className="text-white text-lg font-black tracking-tighter leading-none">RIVERBORN AI</p>
+           
           </div>
         </div>
       </div>
