@@ -112,7 +112,7 @@ export default function Eval() {
                 ? <tr><td colSpan={6} className="text-center py-20 text-[#1A4435]/40 text-xs font-black uppercase tracking-[0.2em]">No session data available</td></tr>
                 : runs.map((run, i) => (
                   <tr key={`${run.id}-${i}`} className="hover:bg-[#F2FFEE]/20 transition-all duration-300 group">
-                    <td className="px-6 py-4 text-[#1A4435]/30 text-[10px] font-black">{i + 1}</td>
+                    <td className="px-6 py-4 text-[#1A4435]/30 text-[10px] font-black">{runs.length - i}</td>
                     <td className="px-6 py-4">
                       <p className="text-[#0D2B22] text-[13px] font-black truncate max-w-[280px] group-hover:translate-x-1 transition-transform">
                         {run.topic}
