@@ -19,7 +19,7 @@
  * ──────────────────────────────────────────────────────────────────────────────
  */
 
-import OpenAI from 'openai';
+import { getOpenAI } from '../utils/openai.js';
 
 const SYSTEM_PROMPT = `
 You are a content safety classifier for a professional AI content creation platform.
@@ -49,8 +49,8 @@ Response format:
  * @param {object} brief  – { topic, tone, audience, channel, angle }
  * @returns {Promise<{ tripwireTriggered: boolean, outputInfo?: { reason: string } }>}
  */
-export async function runInputGuardrail(brief) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+export async function runInputGuardrail(brief, sessionId = null) {
+  const openai = getOpenAI(sessionId);
   const briefText = [
     `Topic:    ${brief.topic}`,
     `Tone:     ${brief.tone}`,
