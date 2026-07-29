@@ -28,19 +28,19 @@
  */
 
 import 'dotenv/config';
-import path           from 'path';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import chalk          from 'chalk';
-import ora            from 'ora';
-import fse            from 'fs-extra';
-import OpenAI         from 'openai';
+import chalk from 'chalk';
+import ora from 'ora';
+import fse from 'fs-extra';
+import { getOpenAI } from '../utils/openai.js';
 
 import {
   withTrace,
 } from '@openai/agents';
 
-import { searchDecision }   from '../tools/searchDecision.js';
-import { webSearch }        from '../tools/webSearch.js';
+import { searchDecision } from '../tools/searchDecision.js';
+import { webSearch } from '../tools/webSearch.js';
 import {
   updateSession,
   logError,
@@ -59,7 +59,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * @returns {Promise<string>} absolute path to the session sandbox
  */
 async function initialiseSandbox(sessionId) {
-  const base        = process.env.SANDBOX_DIR ?? './sandbox';
+  const base = process.env.SANDBOX_DIR ?? './sandbox';
   const sandboxPath = path.resolve(__dirname, '..', base, sessionId);
   await fse.ensureDir(sandboxPath);
   return sandboxPath;
@@ -75,8 +75,8 @@ async function initialiseSandbox(sessionId) {
  * @param {object|null} searchResult – result from webSearch(), or null
  * @returns {Promise<object>}    structured fact_sheet
  */
-async function synthesizeFacts(brief, searchResult) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+async function synthesizeFacts(brief, searchResult, sessionId) {
+  const openai = getOpenAI(sessionId);
   const hasSearchData = searchResult && searchResult.keyFacts?.length > 0;
 
   const contextSection = hasSearchData
@@ -119,13 +119,13 @@ OUTPUT: Return a JSON object with this EXACT structure (no markdown, no prose):
 `.trim();
 
   const response = await openai.chat.completions.create({
-    model:           'gpt-4o',
-    temperature:     0.3,
-    max_tokens:      1200,
+    model: 'gpt-4o',
+    temperature: 0.3,
+    max_tokens: 1200,
     response_format: { type: 'json_object' },
     messages: [
       {
-        role:    'user',
+        role: 'user',
         content: prompt,
       },
     ],
@@ -196,13 +196,13 @@ export async function runResearchAgent(session) {
 
     // ── Step 2: Search decision ──────────────────────────────────────────────
     const decisionSpinner = ora({
-      text:    chalk.dim('  Evaluating search necessity...'),
+      text: chalk.dim('  Evaluating search necessity...'),
       spinner: 'dots',
-      color:   'yellow',
+      color: 'yellow',
     }).start();
 
     try {
-      decision = await searchDecision(brief.topic, brief);
+      decision = await searchDecision(brief.topic, brief, sessionId);
       decisionSpinner.stop();
     } catch (err) {
       decisionSpinner.fail('Search decision failed');
@@ -213,7 +213,7 @@ export async function runResearchAgent(session) {
     // Update session with search decision metadata
     await updateSession(sessionId, {
       searchReason: decision.reason,
-      searchUsed:   false, // will flip to true if search runs
+      searchUsed: false, // will flip to true if search runs
     });
 
     // ── Step 3: Conditional web search ──────────────────────────────────────
@@ -234,26 +234,26 @@ export async function runResearchAgent(session) {
 
     // ── Step 4: Synthesize fact sheet ────────────────────────────────────────
     const synthSpinner = ora({
-      text:    chalk.dim('  Synthesizing research into fact sheet (gpt-4o)...'),
+      text: chalk.dim('  Synthesizing research into fact sheet (gpt-4o)...'),
       spinner: 'dots',
-      color:   'magenta',
+      color: 'magenta',
     }).start();
 
     try {
-      const rawFacts = await synthesizeFacts(brief, searchResult);
+      const rawFacts = await synthesizeFacts(brief, searchResult, sessionId);
 
       // Enrich with metadata
       factSheet = {
         ...rawFacts,
         _meta: {
           sessionId,
-          topic:        brief.topic,
-          channel:      brief.channel,
-          searchUsed:   decision.needsSearch && searchResult !== null,
-          searchQuery:  decision.needsSearch ? decision.searchQuery : null,
+          topic: brief.topic,
+          channel: brief.channel,
+          searchUsed: decision.needsSearch && searchResult !== null,
+          searchQuery: decision.needsSearch ? decision.searchQuery : null,
           searchReason: decision.reason,
-          generatedAt:  new Date().toISOString(),
-          model:        'gpt-4o',
+          generatedAt: new Date().toISOString(),
+          model: 'gpt-4o',
         },
       };
 
@@ -278,7 +278,7 @@ export async function runResearchAgent(session) {
   // ── Step 6: Update session ────────────────────────────────────────────────
   const updatedSession = await updateSession(sessionId, {
     factSheet,
-    searchUsed:   decision?.needsSearch && searchResult !== null,
+    searchUsed: decision?.needsSearch && searchResult !== null,
     searchReason: decision?.reason,
     pipelineStatus: 'research-complete',
   });
