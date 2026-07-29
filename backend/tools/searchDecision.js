@@ -20,7 +20,7 @@
  */
 
 import 'dotenv/config';
-import OpenAI from 'openai';
+import { getOpenAI } from '../utils/openai.js';
 import chalk from 'chalk';
 
 // ── System prompt ─────────────────────────────────────────────────────────────
@@ -69,8 +69,8 @@ Format:
  * @param {object} [brief]  – full brief for extra context (tone, audience, channel)
  * @returns {Promise<{ needsSearch: boolean, reason: string, searchQuery: string }>}
  */
-export async function searchDecision(topic, brief = {}) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+export async function searchDecision(topic, brief = {}, sessionId = null) {
+  const openai = getOpenAI(sessionId);
   const contextLines = [
     `Topic:    ${topic}`,
     brief.tone     ? `Tone:     ${brief.tone}`     : null,
