@@ -13,7 +13,7 @@
  */
 
 import 'dotenv/config';
-import OpenAI from 'openai';
+import { getOpenAI } from '../utils/openai.js';
 import chalk from 'chalk';
 import ora from 'ora';
 import { withTrace } from '@openai/agents';
@@ -22,8 +22,8 @@ import { updateSession, appendHistory } from '../session.js';
 /**
  * generateDraft - Calls OpenAI to generate content based on the brief and facts.
  */
-async function generateDraft(brief, factSheet, model, feedback = null) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+async function generateDraft(brief, factSheet, model, feedback = null, sessionId = null) {
+  const openai = getOpenAI(sessionId);
   
   const systemPrompt = `
 You are an expert content writer specialized in ${brief.channel} content.
@@ -86,8 +86,8 @@ export async function runWriterAgent(session, feedback = null) {
     try {
       // Parallel generation
       [gpt4oDraft, claudeDraft] = await Promise.all([
-        generateDraft(brief, factSheet, 'gpt4o', feedback),
-        generateDraft(brief, factSheet, 'claude', feedback) // Using mini as a proxy for speed/variety
+        generateDraft(brief, factSheet, 'gpt4o', feedback, sessionId),
+        generateDraft(brief, factSheet, 'claude', feedback, sessionId) // Using mini as a proxy for speed/variety
       ]);
 
       spinner.succeed(chalk.green('  Drafts generated successfully'));
