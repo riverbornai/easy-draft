@@ -134,7 +134,7 @@ async function terminalHITL(draft) {
  */
 async function webHITL(sessionId) {
   console.log(chalk.bold.yellow('\n  🌐  Web HITL — waiting for approval via dashboard...'));
-  console.log(chalk.dim('  Open http://localhost:5173/drafts and approve or reject the draft.\n'));
+  console.log(chalk.dim('  Open http://localhost:3000/drafts and approve or reject the draft.\n'));
 
   const start = Date.now();
 
@@ -223,7 +223,7 @@ export async function runReviewAgent(session) {
       color:   'yellow',
     }).start();
 
-    const guardrailResult = await runOutputGuardrail(draft, current.factSheet ?? null);
+    const guardrailResult = await runOutputGuardrail(draft, current.factSheet ?? null, sessionId);
     guardrailSpinner.stop();
 
     if (guardrailResult.tripwireTriggered) {
