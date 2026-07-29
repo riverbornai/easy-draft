@@ -28,6 +28,7 @@ import {
   logError,
   getSession,
 } from '../session.js';
+import { getOpenAI } from '../utils/openai.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -68,8 +69,7 @@ async function handleSessionUpdate(session, userMessage) {
   // Record in history
   await appendHistory(session.sessionId, 'user', userMessage);
 
-  const { default: OpenAI } = await import('openai');
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = getOpenAI(session.sessionId);
 
   const currentBrief = JSON.stringify(session.brief, null, 2);
 
@@ -164,7 +164,7 @@ export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = n
 
       // Run input guardrail
       console.log(chalk.dim('\n  🛡  Running input safety guardrail...'));
-      const guardrailResult = await runInputGuardrail(brief);
+      const guardrailResult = await runInputGuardrail(brief, session.sessionId);
 
       if (guardrailResult.tripwireTriggered) {
         await logError(session.sessionId, 'intake-guardrail', guardrailResult.outputInfo?.reason);
@@ -187,7 +187,7 @@ export async function runIntakeAgent({ skipMultiTurn = false, preFilledBrief = n
   } else {
     // Brief provided via Web UI — still run guardrail for safety
     console.log(chalk.dim('  Brief provided via API. Running guardrail...'));
-    const guardrailResult = await runInputGuardrail(brief);
+    const guardrailResult = await runInputGuardrail(brief, session.sessionId);
     if (guardrailResult.tripwireTriggered) {
        await logError(session.sessionId, 'intake-guardrail', guardrailResult.outputInfo?.reason);
        throw new Error(`[IntakeAgent] Web brief blocked by guardrail: ${guardrailResult.outputInfo?.reason}`);
