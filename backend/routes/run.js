@@ -11,6 +11,7 @@ import {
 } from '../mockStore.js';
 import { runPipeline } from '../orchestrator.js';
 import { createSession, updateSession } from '../session.js';
+import { apiKeyStorage, sessionKeys } from '../utils/context.js';
 
 const router = Router();
 
@@ -20,6 +21,10 @@ router.post('/start', async (req, res) => {
     const { topic, context, tone, audience, channel, angle } = req.body;
     console.log('[API] /api/run/start received:', { topic, channel });
 
+    // Extract API key from request headers
+    const apiKey = req.headers['x-api-key'] || 
+      (req.headers['authorization'] && req.headers['authorization'].replace('Bearer ', ''));
+
     // Create session first so we can return the ID
     const session = await createSession();
     if (!session || !session.sessionId) {
@@ -27,6 +32,11 @@ router.post('/start', async (req, res) => {
     }
     
     console.log('[API] Created session:', session.sessionId);
+    
+    // Store key in session map if it exists
+    if (apiKey) {
+      sessionKeys.set(session.sessionId, apiKey);
+    }
     
     // Update memory proxy
     await activeRuns.set(session.sessionId, session);
@@ -38,17 +48,22 @@ router.post('/start', async (req, res) => {
       sessionId: session.sessionId
     });
 
-    // Background pipeline
-    runPipeline({
-       preFilledBrief: { topic, context, tone, audience, channel, angle },
-       sessionId: session.sessionId
-    }).catch(async err => {
-      console.error('Background pipeline error:', err);
-      try {
-        await updateSession(session.sessionId, { pipelineStatus: 'error' });
-      } catch (e) {
-        console.error('Failed to update session error status:', e);
-      }
+    // Background pipeline wrapped in storage context
+    apiKeyStorage.run(apiKey, () => {
+      runPipeline({
+         preFilledBrief: { topic, context, tone, audience, channel, angle },
+         sessionId: session.sessionId
+      }).catch(async err => {
+        console.error('Background pipeline error:', err);
+        try {
+          await updateSession(session.sessionId, { pipelineStatus: 'error' });
+        } catch (e) {
+          console.error('Failed to update session error status:', e);
+        }
+      }).finally(() => {
+        // Clean up the key mapping when run ends
+        sessionKeys.delete(session.sessionId);
+      });
     });
   } catch (err) {
     console.error('Route error in /api/run/start:', err);
