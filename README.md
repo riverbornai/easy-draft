@@ -12,6 +12,7 @@ Riverborn AI is a multi-agent content production studio built using the **OpenAI
 * **Human-in-the-Loop (HITL):** Supports reviewing, editing, and approving drafts through either a Web UI or a Terminal prompt.
 * **Safety Guardrails:** Automatically flags hallucinated stats, fake quotes, and toxic language before presenting drafts to humans.
 * **Performance Analysis & Leaderboard:** Evaluates approved drafts using an automated grader and logs historical performance over time.
+* **Client-Side API Key Management:** Add your OpenAI API key directly in the browser. Keys are encrypted and stored in local storage, passed to the backend via headers, and never stored on the server.
 
 ---
 
@@ -62,7 +63,7 @@ Riverborn AI is a multi-agent content production studio built using the **OpenAI
 * Node.js (>= 18)
 * Yarn or NPM
 * MongoDB (running locally or a connection URI)
-* OpenAI API Key
+* OpenAI API Key (Can be configured in the Frontend, or provided in backend .env)
 
 ### Step 1: Install Dependencies
 
@@ -80,8 +81,8 @@ Go to the `backend/` folder, copy `.env.example` to `.env`, and populate your se
 cp backend/.env.example backend/.env
 ```
 Ensure you provide:
-* `OPENAI_API_KEY`
-* `MONGO_URI` (or configure your MongoDB connection string in the env or code)
+* `OPENAI_API_KEY` (Optional; if not provided here, you will be prompted to enter it in the browser)
+* `MONGO_DB` (or configure your MongoDB connection string in the env or code)
 
 #### Frontend Setup:
 Go to the `frontend/` folder, copy `.env.example` to `.env`:
@@ -97,7 +98,7 @@ Start both the backend server and frontend development server concurrently from 
 yarn dev
 ```
 
-* **Frontend Dashboard:** http://localhost:5173
+* **Frontend Dashboard:** http://localhost:3000
 * **Backend Server:** http://localhost:3001
 
 ---
