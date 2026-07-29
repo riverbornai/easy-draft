@@ -23,7 +23,7 @@
  */
 
 import 'dotenv/config';
-import OpenAI from 'openai';
+import { getOpenAI } from '../utils/openai.js';
 import chalk  from 'chalk';
 
 // ── System prompt ─────────────────────────────────────────────────────────────
@@ -77,12 +77,12 @@ Respond ONLY with valid JSON — no markdown, no prose:
  *   outputInfo: { issues: string[], severity: string, reason: string, summary: string }
  * }>}
  */
-export async function runOutputGuardrail(draft, factSheet = null) {
+export async function runOutputGuardrail(draft, factSheet = null, sessionId = null) {
   if (!draft || draft.trim().length === 0) {
     return { tripwireTriggered: false, outputInfo: { issues: [], severity: 'none', reason: '', summary: 'Empty draft.' } };
   }
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = getOpenAI(sessionId);
 
   // Build a compact, readable facts context for the model
   const factsContext = factSheet
