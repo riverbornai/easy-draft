@@ -11,7 +11,7 @@
  */
 
 import 'dotenv/config';
-import OpenAI from 'openai';
+import { getOpenAI } from '../utils/openai.js';
 import chalk from 'chalk';
 import { updateSession } from '../session.js';
 
@@ -21,7 +21,7 @@ export async function runEvalRunner(session) {
   console.log('\n' + chalk.bold.bgBlue(' EVAL RUNNER ') + chalk.bold.white(' Phase 6 — Scoring & Analysis'));
   console.log(chalk.dim('─'.repeat(60)));
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = getOpenAI(sessionId);
 
   const prompt = `
 You are a content quality evaluator. Evaluate the following content based on the provided brief.
