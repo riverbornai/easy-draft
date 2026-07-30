@@ -18,6 +18,41 @@ export default function Runs() {
   const isCreating = location.pathname === '/runs/new';
   const pollRef = useRef(null);
 
+  const [editedGptDraft, setEditedGptDraft] = useState('');
+  const [editedClaudeDraft, setEditedClaudeDraft] = useState('');
+  const [feedbackText, setFeedbackText] = useState('');
+
+  const lastSessionIdRef = useRef(null);
+  const loadedGptDraftRef = useRef('');
+  const loadedClaudeDraftRef = useRef('');
+
+  useEffect(() => {
+    const currentSessionId = selectedRun?.id || selectedRun?.sessionId;
+    if (selectedRun) {
+      const dbGpt = selectedRun.gpt4oDraft || '';
+      const dbClaude = selectedRun.claudeDraft || '';
+      
+      const sessionChanged = lastSessionIdRef.current !== currentSessionId;
+      const dbGptChanged = loadedGptDraftRef.current !== dbGpt;
+      const dbClaudeChanged = loadedClaudeDraftRef.current !== dbClaude;
+      
+      if (sessionChanged || dbGptChanged || dbClaudeChanged) {
+        setEditedGptDraft(dbGpt);
+        setEditedClaudeDraft(dbClaude);
+        
+        lastSessionIdRef.current = currentSessionId;
+        loadedGptDraftRef.current = dbGpt;
+        loadedClaudeDraftRef.current = dbClaude;
+      }
+    } else {
+      setEditedGptDraft('');
+      setEditedClaudeDraft('');
+      lastSessionIdRef.current = null;
+      loadedGptDraftRef.current = '';
+      loadedClaudeDraftRef.current = '';
+    }
+  }, [selectedRun]);
+
   useEffect(() => {
     fetchRuns();
   }, []);
@@ -130,7 +165,8 @@ export default function Runs() {
 
   const handleApprove = async (model) => {
     try {
-      await axios.post('/api/drafts/approve', { runId: id, model });
+      const content = model === 'claude' ? editedClaudeDraft : editedGptDraft;
+      await axios.post('/api/drafts/approve', { runId: id, model, editedContent: content });
       fetchSelectedRunStatus();
       fetchRuns(true);
     } catch (err) {
@@ -399,6 +435,24 @@ export default function Runs() {
                             <p className="text-[#1A4435] text-sm max-w-xs mx-auto">This run may be in progress or was imported without full draft history.</p>
                           </div>
                         )}
+
+                        {/* Live Counts for Final/Approved Content */}
+                        {(selectedRun.approvedDraft || ((selectedRun.winner || selectedRun.activeModel) === 'claude' ? selectedRun.claudeDraft : selectedRun.gpt4oDraft)) && (
+                          <div className="mt-8 pt-4 border-t border-[#E8EDE6]/50 flex justify-between text-[10px] text-[#1A4435]/50 font-semibold uppercase tracking-wider px-1">
+                            <span>
+                              {(() => {
+                                const text = selectedRun.approvedDraft || ((selectedRun.winner || selectedRun.activeModel) === 'claude' ? selectedRun.claudeDraft : selectedRun.gpt4oDraft);
+                                return text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+                              })()} words
+                            </span>
+                            <span>
+                              {(() => {
+                                const text = selectedRun.approvedDraft || ((selectedRun.winner || selectedRun.activeModel) === 'claude' ? selectedRun.claudeDraft : selectedRun.gpt4oDraft);
+                                return text ? text.length : 0;
+                              })()} characters
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Metrics Section */}
@@ -456,18 +510,28 @@ export default function Runs() {
 
                             <div className="grid grid-cols-2 gap-8 mb-10">
                               {/* GPT-4o Draft */}
-                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#D4F53C] hover:bg-white transition-all duration-500 group">
-                                <div className="flex items-center justify-between mb-6">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-xl bg-[#0D2B22] flex items-center justify-center shadow-lg">
-                                      <span className="text-[#D4F53C] text-[10px] font-black">A</span>
+                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#D4F53C] hover:bg-white transition-all duration-500 group flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-8 h-8 rounded-xl bg-[#0D2B22] flex items-center justify-center shadow-lg">
+                                        <span className="text-[#D4F53C] text-[10px] font-black">A</span>
+                                      </div>
+                                      <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-widest">GPT-4o Draft</span>
                                     </div>
-                                    <span className="text-[11px] font-black text-[#0D2B22] uppercase tracking-widest">GPT-4o Draft</span>
+                                    <div className="w-2 h-2 rounded-full bg-[#D4F53C] shadow-[0_0_8px_rgba(212,245,60,0.8)]" />
                                   </div>
-                                  <div className="w-2 h-2 rounded-full bg-[#D4F53C] shadow-[0_0_8px_rgba(212,245,60,0.8)]" />
-                                </div>
-                                <div className="text-[15px] text-[#1A4435] leading-relaxed max-h-[400px] overflow-y-auto pr-3 custom-scrollbar whitespace-pre-wrap mb-8 font-medium italic opacity-70 group-hover:opacity-100 transition-opacity">
-                                  {selectedRun.gpt4oDraft || "The engine is still synthesizing this variation..."}
+                                  <textarea
+                                    value={editedGptDraft}
+                                    onChange={(e) => setEditedGptDraft(e.target.value)}
+                                    disabled={!selectedRun.gpt4oDraft}
+                                    placeholder="The engine is still synthesizing this variation..."
+                                    className="w-full min-h-[300px] max-h-[400px] p-4 bg-white/50 border border-[#E8EDE6] focus:border-[#D4F53C] focus:bg-white focus:ring-4 focus:ring-[#D4F53C]/5 rounded-2xl text-[15px] text-[#1A4435] leading-relaxed resize-none outline-none custom-scrollbar mb-4 font-normal"
+                                  />
+                                  <div className="flex justify-between items-center text-[10px] text-[#1A4435]/60 mb-6 font-semibold uppercase tracking-wider px-2">
+                                    <span>{editedGptDraft ? editedGptDraft.trim().split(/\s+/).filter(Boolean).length : 0} words</span>
+                                    <span>{editedGptDraft ? editedGptDraft.length : 0} characters</span>
+                                  </div>
                                 </div>
                                 <button 
                                   onClick={() => handleApprove('gpt4o')}
@@ -478,18 +542,28 @@ export default function Runs() {
                               </div>
 
                               {/* Claude Draft */}
-                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#0D2B22] hover:bg-white transition-all duration-500 group">
-                                <div className="flex items-center justify-between mb-6">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-xl bg-[#1A4435] flex items-center justify-center shadow-lg">
-                                      <span className="text-white text-[10px] font-black">B</span>
+                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#0D2B22] hover:bg-white transition-all duration-500 group flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-8 h-8 rounded-xl bg-[#1A4435] flex items-center justify-center shadow-lg">
+                                        <span className="text-white text-[10px] font-black">B</span>
+                                      </div>
+                                      <span className="text-[11px] font-black text-[#1A4435] uppercase tracking-widest">Claude Draft</span>
                                     </div>
-                                    <span className="text-[11px] font-black text-[#1A4435] uppercase tracking-widest">Claude Draft</span>
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                                   </div>
-                                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                                </div>
-                                <div className="text-[15px] text-[#1A4435] leading-relaxed max-h-[400px] overflow-y-auto pr-3 custom-scrollbar whitespace-pre-wrap mb-8 font-medium italic opacity-70 group-hover:opacity-100 transition-opacity">
-                                  {selectedRun.claudeDraft || "Synthesizing secondary variation..."}
+                                  <textarea
+                                    value={editedClaudeDraft}
+                                    onChange={(e) => setEditedClaudeDraft(e.target.value)}
+                                    disabled={!selectedRun.claudeDraft}
+                                    placeholder="Synthesizing secondary variation..."
+                                    className="w-full min-h-[300px] max-h-[400px] p-4 bg-white/50 border border-[#E8EDE6] focus:border-[#0D2B22] focus:bg-white focus:ring-4 focus:ring-[#0D2B22]/5 rounded-2xl text-[15px] text-[#1A4435] leading-relaxed resize-none outline-none custom-scrollbar mb-4 font-normal"
+                                  />
+                                  <div className="flex justify-between items-center text-[10px] text-[#1A4435]/60 mb-6 font-semibold uppercase tracking-wider px-2">
+                                    <span>{editedClaudeDraft ? editedClaudeDraft.trim().split(/\s+/).filter(Boolean).length : 0} words</span>
+                                    <span>{editedClaudeDraft ? editedClaudeDraft.length : 0} characters</span>
+                                  </div>
                                 </div>
                                 <button 
                                   onClick={() => handleApprove('claude')}
@@ -503,19 +577,29 @@ export default function Runs() {
                             {/* Reject Section */}
                             <div className="bg-[#F2FFEE]/30 rounded-3xl p-8 border border-[#9FCEBE]/20">
                               <p className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-4 ml-1">Refinement Feedback</p>
-                              <div className="flex gap-4">
-                                <input 
-                                  type="text"
+                              <div className="flex flex-col gap-3">
+                                <textarea 
+                                  value={feedbackText}
+                                  onChange={(e) => setFeedbackText(e.target.value)}
                                   placeholder="e.g. 'Synthesize both ideas but make the tone more aggressive...'"
-                                  className="flex-1 bg-white border border-[#E8EDE6] rounded-2xl px-6 py-4 text-sm font-semibold text-[#0D2B22] focus:outline-none focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all placeholder-[#1A4435]/30 shadow-inner"
-                                  id="feedback-input-runs"
+                                  className="w-full bg-white border border-[#E8EDE6] rounded-2xl px-6 py-4 text-sm font-semibold text-[#0D2B22] focus:outline-none focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all placeholder-[#1A4435]/30 shadow-inner resize-none"
+                                  rows={3}
                                 />
-                                <button 
-                                  onClick={() => handleReject(document.getElementById('feedback-input-runs').value)}
-                                  className="bg-white text-red-500 border border-red-100 font-black px-8 rounded-2xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-all text-[11px] uppercase tracking-[0.15em] shadow-sm shadow-red-500/5 active:scale-95"
-                                >
-                                  Reject & Redraft
-                                </button>
+                                <div className="flex justify-between items-center mt-1">
+                                  <span className="text-[10px] text-[#1A4435]/60 font-semibold uppercase tracking-wider px-1">
+                                    {feedbackText ? feedbackText.length : 0} characters
+                                  </span>
+                                  <button 
+                                    onClick={() => {
+                                      handleReject(feedbackText);
+                                      setFeedbackText('');
+                                    }}
+                                    disabled={!feedbackText.trim()}
+                                    className="bg-[#0D2B22] text-[#D4F53C] font-black px-8 py-3.5 rounded-2xl hover:bg-[#1A4435] transition-all text-[11px] uppercase tracking-[0.15em] shadow-sm active:scale-95 disabled:opacity-50 disabled:pointer-events-none disabled:bg-gray-200 disabled:text-gray-400 disabled:border-transparent"
+                                  >
+                                    Reject & Redraft
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
