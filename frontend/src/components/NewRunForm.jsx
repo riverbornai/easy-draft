@@ -33,6 +33,29 @@ export default function NewRunForm() {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = searchValue.trim();
+      if (val) {
+        if (!form.audience.includes(val)) {
+          set('audience', [...form.audience, val]);
+        }
+        setSearchValue('');
+      }
+    } else if (e.key === 'Backspace' && !searchValue && form.audience.length > 0) {
+      set('audience', form.audience.slice(0, -1));
+    }
+  };
+
+  const filteredAudiences = AUDIENCES.filter(aud =>
+    aud.toLowerCase().includes(searchValue.trim().toLowerCase())
+  );
+
+  const exactMatchExists = AUDIENCES.some(aud => aud.toLowerCase() === searchValue.trim().toLowerCase()) ||
+                           form.audience.some(aud => aud.toLowerCase() === searchValue.trim().toLowerCase());
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -153,26 +176,34 @@ export default function NewRunForm() {
             </label>
             <div className="relative">
               <div 
-                tabIndex="0"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-3 min-h-[48px] flex flex-wrap gap-2 focus:bg-white focus:border-[#0D2B22] focus:ring-4 focus:ring-[#0D2B22]/5 transition-all duration-300 cursor-pointer relative pr-10 items-center"
+                onClick={() => setDropdownOpen(true)}
+                className="w-full bg-[#F2FFEE]/30 border border-[#E8EDE6] rounded-2xl px-4 py-1.5 min-h-[48px] flex flex-wrap gap-2 focus-within:bg-white focus-within:border-[#0D2B22] focus-within:ring-4 focus-within:ring-[#0D2B22]/5 transition-all duration-300 cursor-text relative pr-10 items-center"
               >
-                {form.audience.length === 0 ? (
-                  <span className="text-[#1A4435] text-sm px-2 font-medium">Select target audience...</span>
-                ) : (
-                  form.audience.map(aud => (
-                    <span key={aud} className="bg-[#D4F53C]/20 text-[#0D2B22] text-[10px] font-black px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 border border-[#1A4435]/30 animate-in zoom-in-95 duration-200 uppercase tracking-widest">
-                      {aud}
-                      <button 
-                        type="button" 
-                        onClick={(e) => { e.stopPropagation(); toggleAudience(aud); }} 
-                        className="hover:text-red-500 transition-colors"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))
-                )}
+                {form.audience.map(aud => (
+                  <span key={aud} className="bg-[#D4F53C]/20 text-[#0D2B22] text-[10px] font-black px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 border border-[#1A4435]/30 animate-in zoom-in-95 duration-200 uppercase tracking-widest">
+                    {aud}
+                    <button 
+                      type="button" 
+                      onClick={(e) => { e.stopPropagation(); toggleAudience(aud); }} 
+                      className="hover:text-red-500 cursor-pointer font-black text-[13px] transition-all duration-200 ml-1 hover:scale-125 px-1 active:scale-95 flex items-center justify-center"
+                      title="Remove"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => {
+                    setSearchValue(e.target.value);
+                    setDropdownOpen(true);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => setDropdownOpen(true)}
+                  placeholder={form.audience.length === 0 ? "Select or type target audience..." : ""}
+                  className="flex-1 bg-transparent border-0 outline-none text-sm p-1 min-w-[150px] text-[#0D2B22] focus:ring-0 focus:outline-none placeholder-[#1A4435]/50"
+                />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1A4435] pointer-events-none">
                   <ChevronDown size={14} />
                 </div>
@@ -182,7 +213,24 @@ export default function NewRunForm() {
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
                   <div className="absolute top-full left-0 w-full mt-3 bg-white border border-[#E8EDE6] rounded-2xl shadow-2xl z-20 max-h-60 overflow-y-auto p-2 animate-in slide-in-from-top-2 duration-300 flex flex-col gap-2">
-                    {AUDIENCES.map(aud => (
+                    {searchValue.trim() && !exactMatchExists && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const val = searchValue.trim();
+                          set('audience', [...form.audience, val]);
+                          setSearchValue('');
+                        }}
+                        className="w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-[#D4F53C]/15 text-[#0D2B22] hover:bg-[#D4F53C]/25 flex items-center justify-between border border-dashed border-[#0D2B22]/30"
+                      >
+                        <span>Create Custom: "{searchValue.trim()}"</span>
+                        <span className="text-sm font-black">+</span>
+                      </button>
+                    )}
+                    {filteredAudiences.length === 0 && !searchValue.trim() && (
+                      <div className="p-3 text-center text-xs text-[#1A4435]/60 font-semibold uppercase tracking-wider">No presets found</div>
+                    )}
+                    {filteredAudiences.map(aud => (
                       <button
                         key={aud}
                         type="button"
