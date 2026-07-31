@@ -11,7 +11,7 @@ import {
 } from '../mockStore.js';
 import { runPipeline } from '../orchestrator.js';
 import { createSession, updateSession } from '../session.js';
-import { apiKeyStorage, sessionKeys } from '../utils/context.js';
+import { apiKeyStorage, sessionKeys, anthropicApiKeyStorage, anthropicSessionKeys } from '../utils/context.js';
 
 const router = Router();
 
@@ -21,23 +21,27 @@ router.post('/start', async (req, res) => {
     const { topic, context, tone, audience, channel, angle } = req.body;
     console.log('[API] /api/run/start received:', { topic, channel });
 
-    // Extract API key from request headers
-    const apiKey = req.headers['x-api-key'] || 
+    // Extract API keys from request headers
+    const apiKey = req.headers['x-api-key'] ||
       (req.headers['authorization'] && req.headers['authorization'].replace('Bearer ', ''));
+    const anthropicKey = req.headers['x-anthropic-key'] || null;
 
     // Create session first so we can return the ID
     const session = await createSession();
     if (!session || !session.sessionId) {
       throw new Error('Failed to create session or sessionId is missing.');
     }
-    
+
     console.log('[API] Created session:', session.sessionId);
-    
-    // Store key in session map if it exists
+
+    // Store keys in session maps if they exist
     if (apiKey) {
       sessionKeys.set(session.sessionId, apiKey);
     }
-    
+    if (anthropicKey) {
+      anthropicSessionKeys.set(session.sessionId, anthropicKey);
+    }
+
     // Update memory proxy
     await activeRuns.set(session.sessionId, session);
 
@@ -50,19 +54,22 @@ router.post('/start', async (req, res) => {
 
     // Background pipeline wrapped in storage context
     apiKeyStorage.run(apiKey, () => {
-      runPipeline({
-         preFilledBrief: { topic, context, tone, audience, channel, angle },
-         sessionId: session.sessionId
-      }).catch(async err => {
-        console.error('Background pipeline error:', err);
-        try {
-          await updateSession(session.sessionId, { pipelineStatus: 'error' });
-        } catch (e) {
-          console.error('Failed to update session error status:', e);
-        }
-      }).finally(() => {
-        // Clean up the key mapping when run ends
-        sessionKeys.delete(session.sessionId);
+      anthropicApiKeyStorage.run(anthropicKey, () => {
+        runPipeline({
+           preFilledBrief: { topic, context, tone, audience, channel, angle },
+           sessionId: session.sessionId
+        }).catch(async err => {
+          console.error('Background pipeline error:', err);
+          try {
+            await updateSession(session.sessionId, { pipelineStatus: 'error' });
+          } catch (e) {
+            console.error('Failed to update session error status:', e);
+          }
+        }).finally(() => {
+          // Clean up the key mappings when run ends
+          sessionKeys.delete(session.sessionId);
+          anthropicSessionKeys.delete(session.sessionId);
+        });
       });
     });
   } catch (err) {
