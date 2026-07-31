@@ -52,6 +52,8 @@ export async function createSession(id) {
       formatCompliance: null,
       hookStrength:     null,
       overall:          null,
+      gpt4o:  { accuracy: null, toneMatch: null, formatCompliance: null, hookStrength: null, overall: null, feedback: null },
+      claude: { accuracy: null, toneMatch: null, formatCompliance: null, hookStrength: null, overall: null, feedback: null },
     },
     pipelineStatus: 'created',
     log: [],
