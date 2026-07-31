@@ -8,7 +8,7 @@ import { decrypt } from './utils/crypto.js';
 // Configure Axios via Environment Variables
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
 
-// Add Axios Request Interceptor to attach the decrypted API key
+// Add Axios Request Interceptor to attach the decrypted API keys
 axios.interceptors.request.use((config) => {
   const encryptedKey = localStorage.getItem('openai_api_key');
   if (encryptedKey) {
@@ -18,6 +18,15 @@ axios.interceptors.request.use((config) => {
       config.headers['Authorization'] = `Bearer ${decryptedKey}`;
     }
   }
+
+  const encryptedAnthropicKey = localStorage.getItem('anthropic_api_key');
+  if (encryptedAnthropicKey) {
+    const decryptedAnthropicKey = decrypt(encryptedAnthropicKey);
+    if (decryptedAnthropicKey) {
+      config.headers['X-Anthropic-Key'] = decryptedAnthropicKey;
+    }
+  }
+
   return config;
 }, (error) => {
   return Promise.reject(error);
