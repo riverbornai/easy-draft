@@ -35,16 +35,15 @@ export const activeRuns = {
 function attachScores(session) {
   if (!session) return session;
   if (session.pipelineStatus === 'done' || session.status === 'done') {
-    const overall = session.evalScores?.overall;
-    if (overall !== undefined && overall !== null) {
-      const activeModel = session.activeModel || 'gpt4o';
-      if (activeModel === 'claude') {
-        session.claudeScore = overall;
-        session.gpt4oScore = Math.max(1, overall - 0.5);
-      } else {
-        session.gpt4oScore = overall;
-        session.claudeScore = Math.max(1, overall - 0.5);
-      }
+    // Each score is a real, independent evaluation of its own draft
+    // (see agents/evalRunner.js) — never derived from the other model's score.
+    const gpt4oOverall = session.evalScores?.gpt4o?.overall;
+    const claudeOverall = session.evalScores?.claude?.overall;
+    if (gpt4oOverall !== undefined && gpt4oOverall !== null) {
+      session.gpt4oScore = gpt4oOverall;
+    }
+    if (claudeOverall !== undefined && claudeOverall !== null) {
+      session.claudeScore = claudeOverall;
     }
   }
   return session;
