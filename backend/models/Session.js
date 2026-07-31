@@ -44,11 +44,31 @@ const sessionSchema = new mongoose.Schema({
 
   // Phase 6 – Eval
   evalScores: {
+    // Mirrors whichever model was actually approved/published (backward compat
+    // for /api/metrics avgScore and the "done" check in mockStore.js).
     accuracy: { type: Number, default: null },
     toneMatch: { type: Number, default: null },
     formatCompliance: { type: Number, default: null },
     hookStrength: { type: Number, default: null },
     overall: { type: Number, default: null },
+    // Independent judged scores per draft — each is a real, separate LLM
+    // evaluation of that model's own draft (no derived/offset values).
+    gpt4o: {
+      accuracy: { type: Number, default: null },
+      toneMatch: { type: Number, default: null },
+      formatCompliance: { type: Number, default: null },
+      hookStrength: { type: Number, default: null },
+      overall: { type: Number, default: null },
+      feedback: { type: String, default: null },
+    },
+    claude: {
+      accuracy: { type: Number, default: null },
+      toneMatch: { type: Number, default: null },
+      formatCompliance: { type: Number, default: null },
+      hookStrength: { type: Number, default: null },
+      overall: { type: Number, default: null },
+      feedback: { type: String, default: null },
+    },
   },
 
   // Pipeline metadata
