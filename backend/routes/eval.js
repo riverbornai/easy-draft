@@ -9,9 +9,21 @@ import { activeRuns } from '../mockStore.js';
 const router = Router();
 
 // ── GET /api/eval/scores ──────────────────────────────────────────────────────
-router.get('/scores', async (_req, res) => {
+// Optional ?runId=... to target a specific run; otherwise returns the most
+// recently completed run's scores (not just the first one found).
+router.get('/scores', async (req, res) => {
+  const { runId } = req.query;
   const activeValues = await activeRuns.values();
-  const doneRun = activeValues.find(r => r.evalScores?.overall);
+
+  let doneRun;
+  if (runId) {
+    doneRun = activeValues.find(r => r.sessionId === runId && r.evalScores?.overall != null);
+  } else {
+    doneRun = activeValues
+      .filter(r => r.evalScores?.overall != null)
+      .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))[0];
+  }
+
   res.json(doneRun?.evalScores ?? {
     accuracy: 0,
     toneMatch: 0,
