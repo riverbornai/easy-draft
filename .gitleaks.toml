@@ -1,0 +1,10 @@
+# Gitleaks configuration file
+title = "Riverborn AI Secret Scan Rules"
+
+[allowlist]
+description = "Allowlist for harmless example files"
+paths = [
+  '''\.env\.example$''',
+  '''package-lock\.json$''',
+  '''yarn\.lock$'''
+]
