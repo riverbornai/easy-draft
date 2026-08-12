@@ -25,19 +25,19 @@ for FILE in $STAGED_FILES; do
   fi
 
   # Check for private keys
-  if git diff --cached "$FILE" | grep -qE "-----BEGIN (RSA |EC |OPENSSH |PRIVATE )?KEY-----"; then
+  if git diff --cached "$FILE" | grep -qE -- "-----BEGIN (RSA |EC |OPENSSH |PRIVATE )?KEY-----"; then
     echo "❌ ERROR: Private key detected in staged file: $FILE"
     SECRETS_FOUND=1
   fi
 
   # Check for OpenAI API keys
-  if git diff --cached "$FILE" | grep -qE "sk-proj-[A-Za-z0-9_-]{32,}"; then
+  if git diff --cached "$FILE" | grep -qE -- "sk-proj-[A-Za-z0-9_-]{32,}"; then
     echo "❌ ERROR: OpenAI API key detected in staged file: $FILE"
     SECRETS_FOUND=1
   fi
 
   # Check for Anthropic API keys
-  if git diff --cached "$FILE" | grep -qE "sk-ant-[A-Za-z0-9_-]{32,}"; then
+  if git diff --cached "$FILE" | grep -qE -- "sk-ant-[A-Za-z0-9_-]{32,}"; then
     echo "❌ ERROR: Anthropic API key detected in staged file: $FILE"
     SECRETS_FOUND=1
   fi
