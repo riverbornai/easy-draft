@@ -13,7 +13,21 @@ frontend/.yarnrc.yml
 
 # Environment
 .env
+.env.*
+!.env.example
 backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Secrets & Credentials
+*.pem
+*.key
+*.p12
+*service-account*.json
+*firebase-adminsdk*.json
 
 # App Data
 backend/sandbox/
