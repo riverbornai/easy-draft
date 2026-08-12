@@ -5,11 +5,12 @@ frontend/node_modules/
 
 # Yarn
 .yarn/
-.yarnrc.yml
 backend/.yarn/
-backend/.yarnrc.yml
 frontend/.yarn/
-frontend/.yarnrc.yml
+
+# Build
+dist/
+frontend/dist/
 
 # Environment
 .env
