@@ -11,22 +11,27 @@ import { getSession, allSessions } from './session.js';
 
 // Historical runs are now fetched directly from MongoDB via session.js proxy
 
-// activeRuns is a proxy getter that pulls from MongoDB via session.js
+// activeRuns is a proxy getter that pulls from MongoDB via session.js.
+// Every read is scoped to userId so one account can never see another's runs.
 export const activeRuns = {
-  get: async (id) => {
+  get: async (id, userId) => {
     const session = await getSession(id);
+    if (!session || session.userId !== userId) return null;
     return attachScores(session);
   },
-  has: async (id) => !!(await getSession(id)),
+  has: async (id, userId) => {
+    const session = await getSession(id);
+    return !!session && session.userId === userId;
+  },
   set: async (id, val) => { /* session.js handles its own setting via createSession */ },
   delete: async (id) => { /* cleanup logic if needed */ },
-  values: async () => {
-    const ids = await allSessions();
+  values: async (userId) => {
+    const ids = await allSessions(userId);
     const results = await Promise.all(ids.map(id => getSession(id)));
     return results.filter(Boolean).map(attachScores);
   },
-  entries: async () => {
-    const ids = await allSessions();
+  entries: async (userId) => {
+    const ids = await allSessions(userId);
     const results = await Promise.all(ids.map(async id => [id, attachScores(await getSession(id))]));
     return results.filter(pair => pair[1] !== null);
   }

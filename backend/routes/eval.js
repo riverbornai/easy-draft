@@ -5,15 +5,17 @@
  */
 import { Router } from 'express';
 import { activeRuns } from '../mockStore.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+router.use(requireAuth);
 
 // ── GET /api/eval/scores ──────────────────────────────────────────────────────
 // Optional ?runId=... to target a specific run; otherwise returns the most
 // recently completed run's scores (not just the first one found).
 router.get('/scores', async (req, res) => {
   const { runId } = req.query;
-  const activeValues = await activeRuns.values();
+  const activeValues = await activeRuns.values(req.userId);
 
   let doneRun;
   if (runId) {
@@ -34,8 +36,8 @@ router.get('/scores', async (req, res) => {
 });
 
 // ── GET /api/eval/leaderboard ─────────────────────────────────────────────────
-router.get('/leaderboard', async (_req, res) => {
-  const activeValues = await activeRuns.values();
+router.get('/leaderboard', async (req, res) => {
+  const activeValues = await activeRuns.values(req.userId);
   const activeDone = activeValues
     .filter(r => r.pipelineStatus === 'done' || r.status === 'done')
     .map(r => ({

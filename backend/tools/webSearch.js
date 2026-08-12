@@ -21,7 +21,7 @@
 
 import 'dotenv/config';
 import chalk from 'chalk';
-import ora   from 'ora';
+import ora from 'ora';
 
 import {
   Agent,
@@ -41,7 +41,7 @@ import {
  */
 function buildSearchAgent(topic) {
   return new Agent({
-    name:  'WebSearchAgent',
+    name: 'WebSearchAgent',
     model: 'gpt-4o-mini',
     tools: [webSearchTool()],
     instructions: `
@@ -84,10 +84,10 @@ Be factual, specific, and cite sources. Avoid opinions.
  */
 function parseSearchResponse(text) {
   const result = {
-    sources:  [],
+    sources: [],
     keyFacts: [],
-    summary:  '',
-    rawText:  text,
+    summary: '',
+    rawText: text,
   };
 
   // ── Extract KEY FACTS section ─────────────────────────────────────────────
@@ -109,8 +109,8 @@ function parseSearchResponse(text) {
         const clean = line.replace(/^[-*•]\s*/, '').trim();
         const parts = clean.split('|').map(p => p.trim());
         return {
-          title:   parts[0] ?? clean,
-          url:     parts[1] ?? '',
+          title: parts[0] ?? clean,
+          url: parts[1] ?? '',
           snippet: '',
         };
       })
@@ -143,9 +143,9 @@ function parseSearchResponse(text) {
  */
 export async function webSearch(query, topic = '') {
   const spinner = ora({
-    text:    chalk.dim(`  Searching web: "${query}"`),
+    text: chalk.dim(`  Searching web: "${query}"`),
     spinner: 'dots',
-    color:   'cyan',
+    color: 'cyan',
   }).start();
 
   try {
@@ -176,10 +176,10 @@ export async function webSearch(query, topic = '') {
 
     // Return empty structure — Research Agent will fall back to own knowledge
     return {
-      sources:  [],
+      sources: [],
       keyFacts: [],
-      summary:  `Web search failed: ${err.message}. Using model knowledge only.`,
-      rawText:  '',
+      summary: `Web search failed: ${err.message}. Using model knowledge only.`,
+      rawText: '',
     };
   }
 }

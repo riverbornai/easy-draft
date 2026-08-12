@@ -6,15 +6,20 @@
  */
 import { Router } from 'express';
 import { activeRuns } from '../mockStore.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+// NOTE: this router is mounted at the bare '/api' prefix (see server.js), so
+// requireAuth is applied per-route here rather than via router.use — a
+// blanket router.use would also gate unrelated sibling paths like
+// /api/health that happen to share the same prefix.
 
 // ── GET /api/agents/log ───────────────────────────────────────────────────────
-router.get('/agents/log', async (req, res) => {
+router.get('/agents/log', requireAuth, async (req, res) => {
   const { runId } = req.query;
 
   // Gather logs from all active runs
-  const activeValues = await activeRuns.values();
+  const activeValues = await activeRuns.values(req.userId);
   let allLogs = activeValues.flatMap(r => 
     (r.log ?? []).map(l => ({ ...l, runId: r.sessionId, topic: r.topic || r.brief?.topic }))
   );
@@ -30,12 +35,12 @@ router.get('/agents/log', async (req, res) => {
 });
 
 // ── GET /api/sandbox/factsheet ────────────────────────────────────────────────
-router.get('/sandbox/factsheet', async (req, res) => {
+router.get('/sandbox/factsheet', requireAuth, async (req, res) => {
   const { runId } = req.query;
-  let run = runId ? await activeRuns.get(runId) : null;
-  
+  let run = runId ? await activeRuns.get(runId, req.userId) : null;
+
   if (!run) {
-    const values = await activeRuns.values();
+    const values = await activeRuns.values(req.userId);
     run = values.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
   }
 
@@ -43,8 +48,8 @@ router.get('/sandbox/factsheet', async (req, res) => {
 });
 
 // ── GET /api/metrics ──────────────────────────────────────────────────────────
-router.get('/metrics', async (_req, res) => {
-  const allRuns = await activeRuns.values();
+router.get('/metrics', requireAuth, async (req, res) => {
+  const allRuns = await activeRuns.values(req.userId);
   
   // A run is "done" if pipelineStatus is 'done'
   const doneRuns = allRuns.filter(r => r.pipelineStatus === 'done' || r.status === 'done');

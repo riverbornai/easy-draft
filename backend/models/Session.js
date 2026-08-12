@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const sessionSchema = new mongoose.Schema({
   sessionId: { type: String, required: true, unique: true },
+  userId: { type: String, required: true, index: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 

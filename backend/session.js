@@ -19,13 +19,15 @@ export function setSessionListener(fn) {
 /**
  * createSession – initialise a fresh session and save to DB.
  * @param {string} [id] – optional deterministic ID
+ * @param {string} userId – owner of this session
  * @returns {Promise<object>} session
  */
-export async function createSession(id) {
+export async function createSession(id, userId) {
   const sessionId = id ?? `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   const sessionData = {
     sessionId,
+    userId,
     brief: {
       topic:    null,
       tone:     null,
@@ -179,9 +181,21 @@ export async function serializeSession(sessionId) {
 }
 
 /**
- * allSessions – list all active session IDs.
+ * allSessions – list session IDs belonging to a given user.
+ * @param {string} userId
  */
-export async function allSessions() {
-  const sessions = await Session.find({}, 'sessionId');
+export async function allSessions(userId) {
+  const sessions = await Session.find({ userId }, 'sessionId');
   return sessions.map(s => s.sessionId);
+}
+
+/**
+ * deleteSession – remove a session belonging to a given user.
+ * @param {string} sessionId
+ * @param {string} userId
+ * @returns {Promise<boolean>} whether a document was deleted
+ */
+export async function deleteSession(sessionId, userId) {
+  const result = await Session.deleteOne({ sessionId, userId });
+  return result.deletedCount > 0;
 }

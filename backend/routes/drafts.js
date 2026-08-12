@@ -7,12 +7,14 @@
 import { Router } from 'express';
 import { activeRuns } from '../mockStore.js';
 import { updateSession } from '../session.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
+router.use(requireAuth);
 
 // ── GET /api/drafts ───────────────────────────────────────────────────────────
-router.get('/', async (_req, res) => {
-  const allRuns = await activeRuns.values();
+router.get('/', async (req, res) => {
+  const allRuns = await activeRuns.values(req.userId);
   
   // 1. First, look for a run that is specifically waiting for review (HITL)
   const pendingRun = allRuns.find(r => r.pipelineStatus === 'review' && r.reviewStatus === 'pending');
@@ -38,12 +40,12 @@ router.get('/', async (_req, res) => {
 router.post('/approve', async (req, res) => {
   const { runId, model, editedContent } = req.body; // model: 'gpt4o' | 'claude'
   const id = runId;
-  let run = id ? await activeRuns.get(id) : null;
+  let run = id ? await activeRuns.get(id, req.userId) : null;
   if (!run && id && !id.startsWith('session_')) {
-    run = await activeRuns.get(`session_${id}`);
+    run = await activeRuns.get(`session_${id}`, req.userId);
   }
   if (!run && !id) {
-    const values = await activeRuns.values();
+    const values = await activeRuns.values(req.userId);
     run = values.at(-1);
   }
 
@@ -72,12 +74,12 @@ router.post('/approve', async (req, res) => {
 router.post('/reject', async (req, res) => {
   const { runId, feedback } = req.body;
   const id = runId;
-  let run = id ? await activeRuns.get(id) : null;
+  let run = id ? await activeRuns.get(id, req.userId) : null;
   if (!run && id && !id.startsWith('session_')) {
-    run = await activeRuns.get(`session_${id}`);
+    run = await activeRuns.get(`session_${id}`, req.userId);
   }
   if (!run && !id) {
-    const values = await activeRuns.values();
+    const values = await activeRuns.values(req.userId);
     run = values.at(-1);
   }
   

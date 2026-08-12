@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart2,
-  Activity, Key, Clock
+  Activity, Key, Clock, LogOut
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -11,51 +12,83 @@ const navItems = [
   { to: '/trace-logs', icon: Activity, label: 'Trace Logs' },
 ];
 
+import { useState } from 'react';
+import LogoutModal from './LogoutModal.jsx';
+
 export default function Sidebar({ apiStatus, onManageKey }) {
+  const { currentUser, logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   return (
-    <aside className="fixed top-0 left-0 h-screen w-64 bg-[#0D2B22] flex flex-col z-40 border-r border-[#1A4435] shadow-2xl">
-      {/* Logo */}
-      <div className="px-6 pt-8 pb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#0D2B22] border border-[#1A4435] flex items-center justify-center shadow-lg group">
-            <img
-              src="/icons/icon-mark-forest-on-lime.png"
-              alt="Riverborn AI Logo"
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-            />
-          </div>
-          <div>
-            <p className="text-white text-lg font-black tracking-tighter leading-none">RIVERBORN AI</p>
+    <>
+      <aside className="fixed top-0 left-0 h-screen w-64 bg-[#0D2B22] flex flex-col z-40 border-r border-[#1A4435] shadow-2xl">
+        {/* Logo */}
+        <div className="px-6 pt-8 pb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#0D2B22] border border-[#1A4435] flex items-center justify-center shadow-lg group">
+              <img
+                src="/icons/icon-mark-forest-on-lime.png"
+                alt="Riverborn AI Logo"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            </div>
+            <div>
+              <p className="text-white text-lg font-black tracking-tighter leading-none">RIVERBORN AI</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-4 py-4 space-y-2">
-        {navItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all duration-300 relative group ${isActive
-                ? 'bg-white/5 text-[#D4F53C]'
-                : 'text-[#E8EDE6]/40 hover:text-white hover:bg-white/5'
-              }`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#D4F53C] rounded-full shadow-[0_0_12px_rgba(212,245,60,0.4)]" />
-                )}
-                <Icon size={18} className={isActive ? 'text-[#D4F53C]' : 'group-hover:text-white transition-colors'} />
-                <span>{label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
+        {/* Nav */}
+        <nav className="flex-1 px-4 py-4 space-y-2">
+          {navItems.map(({ to, icon: Icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all duration-300 relative group ${isActive
+                  ? 'bg-white/5 text-[#D4F53C]'
+                  : 'text-[#E8EDE6]/40 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#D4F53C] rounded-full shadow-[0_0_12px_rgba(212,245,60,0.4)]" />
+                  )}
+                  <Icon size={18} className={isActive ? 'text-[#D4F53C]' : 'group-hover:text-white transition-colors'} />
+                  <span>{label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Signed-in user */}
+        {currentUser && (
+          <div className="px-4 pb-2">
+            <div className="flex items-center gap-3 bg-[#103227]/40 border border-[#1A4435] rounded-xl p-3">
+              {currentUser.photoURL ? (
+                <img src={currentUser.photoURL} alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#1A4435] flex items-center justify-center text-[#D4F53C] text-xs font-black">
+                  {(currentUser.email || '?')[0].toUpperCase()}
+                </div>
+              )}
+              <span className="flex-1 min-w-0 text-[#E8EDE6]/70 text-xs truncate">
+                {currentUser.email}
+              </span>
+              <button
+                onClick={() => setShowLogoutModal(true)}
+                title="Sign out"
+                className="text-[#E8EDE6]/40 hover:text-[#D4F53C] transition-colors"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
       {/* API & Key Status Panel */}
       <div className="px-4 py-4 mt-auto border-t border-[#1A4435]">
@@ -100,5 +133,12 @@ export default function Sidebar({ apiStatus, onManageKey }) {
         </div>
       </div>
     </aside>
+
+    <LogoutModal
+      isOpen={showLogoutModal}
+      onClose={() => setShowLogoutModal(false)}
+      onConfirm={logout}
+    />
+    </>
   );
 }

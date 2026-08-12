@@ -4,8 +4,8 @@
  */
 import 'dotenv/config';
 import crypto from 'crypto';
-if (!global.crypto) {
-  global.crypto = crypto;
+if (!globalThis.crypto?.getRandomValues) {
+  globalThis.crypto = crypto.webcrypto || crypto;
 }
 import express from 'express';
 import cors from 'cors';
@@ -17,6 +17,7 @@ import runRoutes from './routes/run.js';
 import agentRoutes from './routes/agents.js';
 import draftRoutes from './routes/drafts.js';
 import evalRoutes from './routes/eval.js';
+import userKeysRoutes from './routes/userKeys.js';
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
@@ -116,6 +117,7 @@ app.use('/api/run', runRoutes);
 app.use('/api', agentRoutes);
 app.use('/api/drafts', draftRoutes);
 app.use('/api/eval', evalRoutes);
+app.use('/api/user/keys', userKeysRoutes);
 
 // ── Error Handler ─────────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {

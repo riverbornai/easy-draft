@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, Calendar, ChevronRight, FileText, ExternalLink, Copy, Check, Plus, Activity, Layout, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Clock, Calendar, ChevronRight, FileText, ExternalLink, Copy, Check, Plus, Activity, Layout, Loader2, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import PipelineBar from '../components/PipelineBar.jsx';
 import AgentLog from '../components/AgentLog.jsx';
 import NewRunForm from '../components/NewRunForm.jsx';
@@ -59,53 +59,53 @@ export default function Runs() {
 
   useEffect(() => {
     const handleRunSelection = async () => {
-      if (runs.length > 0) {
-        if (isCreating) {
-          setSelectedRun(null);
-          return;
+      if (isCreating) {
+        setSelectedRun(null);
+        return;
+      }
+
+      const targetId = id || location.state?.selectedRunId;
+      if (targetId) {
+        let run = runs.find(r => {
+          const rId = r.id || r.sessionId;
+          return rId === targetId || rId.replace('session_', '') === targetId;
+        });
+
+        // Not found yet (e.g. a run just created, or the initial list
+        // fetch hasn't landed it) — refetch regardless of current list
+        // length, so an empty/stale list doesn't get stuck waiting forever.
+        if (!run) {
+          try {
+            const response = await axios.get('/api/run/list');
+            const freshRuns = Array.isArray(response.data) ? response.data : [];
+            setRuns(freshRuns);
+            run = freshRuns.find(r => {
+              const rId = r.id || r.sessionId;
+              return rId === targetId || rId.replace('session_', '') === targetId;
+            });
+          } catch (err) {
+            console.error('Failed to fetch fresh runs:', err);
+          }
         }
 
-        const targetId = id || location.state?.selectedRunId;
-        if (targetId) {
-          let run = runs.find(r => {
-            const rId = r.id || r.sessionId;
-            return rId === targetId || rId.replace('session_', '') === targetId;
-          });
-
-          if (!run && id) {
-            // If not found, try fetching latest list
-            try {
-              const response = await axios.get('/api/run/list');
-              const freshRuns = Array.isArray(response.data) ? response.data : [];
-              setRuns(freshRuns);
-              run = freshRuns.find(r => {
-                const rId = r.id || r.sessionId;
-                return rId === targetId || rId.replace('session_', '') === targetId;
-              });
-            } catch (err) {
-              console.error('Failed to fetch fresh runs:', err);
-            }
-          }
-
-          if (run) {
-            setSelectedRun(run);
-            // Auto-switch view mode based on status
-            if (run.pipelineStatus !== 'done' && run.pipelineStatus !== 'error') {
-              setViewMode('pipeline');
-            } else {
-              setViewMode('output');
-            }
+        if (run) {
+          setSelectedRun(run);
+          // Auto-switch view mode based on status
+          if (run.pipelineStatus !== 'done' && run.pipelineStatus !== 'error') {
+            setViewMode('pipeline');
           } else {
-            // CRITICAL FIX: If we have an ID in the URL but it's not in our list yet, 
-            // DO NOT redirect to the first run immediately. This prevents the "flash"
-            // of an old run page while the new one is being initialized in DB.
-            console.log(`Run ${targetId} not found in list yet, waiting...`);
+            setViewMode('output');
           }
-        } else if (runs.length > 0) {
-          // No ID in URL, default to first run
-          const firstRunId = (runs[0].id || runs[0].sessionId).replace('session_', '');
-          navigate(`/runs/${firstRunId}`, { replace: true });
+        } else {
+          // CRITICAL FIX: If we have an ID in the URL but it's not in our list yet,
+          // DO NOT redirect to the first run immediately. This prevents the "flash"
+          // of an old run page while the new one is being initialized in DB.
+          console.log(`Run ${targetId} not found in list yet, waiting...`);
         }
+      } else if (runs.length > 0) {
+        // No ID in URL, default to first run
+        const firstRunId = (runs[0].id || runs[0].sessionId).replace('session_', '');
+        navigate(`/runs/${firstRunId}`, { replace: true });
       }
     };
 
@@ -185,6 +185,43 @@ export default function Runs() {
     }
   };
 
+  const handleDelete = async (e, run) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this run? This cannot be undone.')) return;
+
+    const rawRunId = run.id || run.sessionId;
+    const cleanId = rawRunId.replace('session_', '');
+
+    // Optimistically update runs list so deleted run vanishes instantly from UI
+    const updatedRuns = runs.filter(r => {
+      const rId = r.id || r.sessionId;
+      return rId !== rawRunId && rId !== `session_${cleanId}` && rId.replace('session_', '') !== cleanId;
+    });
+    setRuns(updatedRuns);
+
+    const wasSelected = selectedRun && ((selectedRun.id || selectedRun.sessionId) === rawRunId || (selectedRun.id || selectedRun.sessionId)?.replace('session_', '') === cleanId);
+
+    if (wasSelected) {
+      if (pollRef.current) clearInterval(pollRef.current);
+      if (updatedRuns.length > 0) {
+        const nextRunId = (updatedRuns[0].id || updatedRuns[0].sessionId).replace('session_', '');
+        setSelectedRun(updatedRuns[0]);
+        navigate(`/runs/${nextRunId}`, { replace: true });
+      } else {
+        setSelectedRun(null);
+        navigate('/runs', { replace: true });
+      }
+    }
+
+    try {
+      await axios.delete(`/api/run/${rawRunId}`);
+      await fetchRuns(true);
+    } catch (err) {
+      console.error('Failed to delete run:', err);
+      fetchRuns(true);
+    }
+  };
+
   useEffect(() => {
     if (selectedRun && selectedRun.pipelineStatus !== 'done' && selectedRun.pipelineStatus !== 'error') {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -250,10 +287,13 @@ export default function Runs() {
                 const isSelected = selectedRun && ((run.id || run.sessionId) === (selectedRun.id || selectedRun.sessionId));
                 
                 return (
-                  <button
+                  <div
                     key={rawRunId}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => navigate(`/runs/${runId}`)}
-                    className={`w-full text-left p-3 rounded-2xl border transition-all duration-300 flex flex-col gap-2 group relative overflow-hidden ${
+                    onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/runs/${runId}`); }}
+                    className={`w-full text-left p-3 rounded-2xl border transition-all duration-300 flex flex-col gap-2 group relative overflow-hidden cursor-pointer ${
                       isSelected
                         ? 'bg-white border-[#0D2B22] shadow-[0_8px_30px_rgb(13,43,34,0.08)] scale-[1.02] z-10'
                         : 'bg-white/40 border-[#E8EDE6] hover:border-[#1A4435] hover:bg-white hover:shadow-sm'
@@ -291,14 +331,21 @@ export default function Runs() {
                             <span className="text-[9px] font-black uppercase">Active</span>
                           </div>
                         )}
+                        {run.winner && (
+                          <span className="text-[9px] font-black text-[#1A4435] bg-[#E8EDE6] px-2 py-1 rounded-md border border-[#1A4435]/5">
+                            {run.winner === 'gpt4o' ? 'GPT-4o' : 'Claude'}
+                          </span>
+                        )}
                       </div>
-                      {run.winner && (
-                        <span className="text-[9px] font-black text-[#1A4435] bg-[#E8EDE6] px-2 py-1 rounded-md border border-[#1A4435]/5">
-                          {run.winner === 'gpt4o' ? 'GPT-4o' : 'Claude'}
-                        </span>
-                      )}
+                      <button
+                        onClick={(e) => handleDelete(e, run)}
+                        title="Delete run"
+                        className="p-1 rounded-lg text-[#1A4435]/40 hover:text-red-600 hover:bg-red-50 transition-all z-20"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })
             )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Key, Eye, EyeOff, Lock, ShieldAlert, X, Sparkles } from 'lucide-react';
-import { encrypt, decrypt } from '../utils/crypto.js';
 
 export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
   const [apiKey, setApiKey] = useState('');
@@ -10,47 +10,56 @@ export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
   const [error, setError] = useState('');
   const [anthropicError, setAnthropicError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [hasOpenAIKey, setHasOpenAIKey] = useState(false);
+  const [hasAnthropicKey, setHasAnthropicKey] = useState(false);
+  const [openaiPreview, setOpenaiPreview] = useState(null);
+  const [anthropicPreview, setAnthropicPreview] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
-      const storedEncrypted = localStorage.getItem('openai_api_key');
-      setApiKey(storedEncrypted ? decrypt(storedEncrypted) : '');
-
-      const storedAnthropicEncrypted = localStorage.getItem('anthropic_api_key');
-      setAnthropicKey(storedAnthropicEncrypted ? decrypt(storedAnthropicEncrypted) : '');
-
+      setApiKey('');
+      setAnthropicKey('');
       setError('');
       setAnthropicError('');
       setSuccess(false);
+
+      axios.get('/api/user/keys')
+        .then(({ data }) => {
+          setHasOpenAIKey(data.hasOpenAIKey);
+          setHasAnthropicKey(data.hasAnthropicKey);
+          setOpenaiPreview(data.openaiKeyPreview);
+          setAnthropicPreview(data.anthropicKeyPreview);
+        })
+        .catch(() => {});
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (!apiKey.trim()) {
+    const trimmedKey = apiKey.trim();
+    const trimmedAnthropicKey = anthropicKey.trim();
+
+    if (!trimmedKey && !hasOpenAIKey) {
       setError('API key cannot be empty.');
       return;
     }
-    if (!apiKey.trim().startsWith('sk-')) {
+    if (trimmedKey && !trimmedKey.startsWith('sk-')) {
       setError('Invalid format. OpenAI API keys typically start with "sk-".');
       return;
     }
     // Claude/Anthropic key is optional — only validate if the user entered one.
-    if (anthropicKey.trim() && !anthropicKey.trim().startsWith('sk-ant-')) {
+    if (trimmedAnthropicKey && !trimmedAnthropicKey.startsWith('sk-ant-')) {
       setAnthropicError('Invalid format. Anthropic API keys typically start with "sk-ant-".');
       return;
     }
 
     try {
-      localStorage.setItem('openai_api_key', encrypt(apiKey.trim()));
-
-      if (anthropicKey.trim()) {
-        localStorage.setItem('anthropic_api_key', encrypt(anthropicKey.trim()));
-      } else {
-        localStorage.removeItem('anthropic_api_key');
-      }
+      const payload = {};
+      if (trimmedKey) payload.openaiKey = trimmedKey;
+      if (trimmedAnthropicKey) payload.anthropicKey = trimmedAnthropicKey;
+      await axios.put('/api/user/keys', payload);
 
       setSuccess(true);
       setError('');
@@ -126,7 +135,7 @@ export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
             <div className="flex gap-2.5 rounded-2xl bg-[#F2FFEE] border border-[#0D2B22]/8 p-4">
               <Lock size={15} className="text-[#0D2B22]/50 mt-0.5 flex-shrink-0" />
               <p className="text-[12px] text-[#0D2B22]/70 leading-relaxed">
-                Your keys are <strong>encrypted</strong> and stored <strong>locally in your browser</strong>. Never sent to our servers.
+                Your keys are <strong>encrypted</strong> and linked to <strong>your account</strong>, so they follow you to any device you sign in on.
               </p>
             </div>
             <div className="flex gap-2.5 rounded-2xl bg-[#0D2B22]/[0.03] border border-[#0D2B22]/8 p-4">
@@ -152,7 +161,7 @@ export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
                     setApiKey(e.target.value);
                     setError('');
                   }}
-                  placeholder="sk-proj-..."
+                  placeholder={hasOpenAIKey ? `Saved: ${openaiPreview} — leave blank to keep` : 'sk-proj-...'}
                   className="w-full bg-[#0D2B22]/[0.02] border border-[#E8EDE6] focus:border-[#0D2B22] focus:ring-1 focus:ring-[#0D2B22]/20 rounded-xl py-3.5 pl-4 pr-12 text-[14px] font-mono text-[#0D2B22] outline-none transition-all placeholder-[#0D2B22]/20"
                 />
                 <button
@@ -185,7 +194,7 @@ export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
                     setAnthropicKey(e.target.value);
                     setAnthropicError('');
                   }}
-                  placeholder="sk-ant-..."
+                  placeholder={hasAnthropicKey ? `Saved: ${anthropicPreview} — leave blank to keep` : 'sk-ant-...'}
                   className="w-full bg-[#0D2B22]/[0.02] border border-[#E8EDE6] focus:border-[#0D2B22] focus:ring-1 focus:ring-[#0D2B22]/20 rounded-xl py-3.5 pl-4 pr-12 text-[14px] font-mono text-[#0D2B22] outline-none transition-all placeholder-[#0D2B22]/20"
                 />
                 <button

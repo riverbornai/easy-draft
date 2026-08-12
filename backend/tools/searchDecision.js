@@ -73,10 +73,10 @@ export async function searchDecision(topic, brief = {}, sessionId = null) {
   const openai = getOpenAI(sessionId);
   const contextLines = [
     `Topic:    ${topic}`,
-    brief.tone     ? `Tone:     ${brief.tone}`     : null,
+    brief.tone ? `Tone:     ${brief.tone}` : null,
     brief.audience ? `Audience: ${brief.audience}` : null,
-    brief.channel  ? `Channel:  ${brief.channel}`  : null,
-    brief.angle    ? `Angle:    ${brief.angle}`     : null,
+    brief.channel ? `Channel:  ${brief.channel}` : null,
+    brief.angle ? `Angle:    ${brief.angle}` : null,
   ]
     .filter(Boolean)
     .join('\n');
@@ -85,14 +85,14 @@ export async function searchDecision(topic, brief = {}, sessionId = null) {
 
   try {
     const response = await openai.chat.completions.create({
-      model:           'gpt-4o-mini',
-      temperature:     0,
-      max_tokens:      200,
+      model: 'gpt-4o-mini',
+      temperature: 0,
+      max_tokens: 200,
       response_format: { type: 'json_object' },
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         {
-          role:    'user',
+          role: 'user',
           content: `Evaluate this content brief:\n\n${contextLines}`,
         },
       ],
@@ -103,21 +103,21 @@ export async function searchDecision(topic, brief = {}, sessionId = null) {
     // Fail-safe: if classification errors, skip search rather than crashing
     console.error(chalk.red('  [searchDecision] Classification error:'), err.message);
     return {
-      needsSearch:  false,
-      reason:       'Classification failed — skipping search as a safe default.',
-      searchQuery:  topic,
+      needsSearch: false,
+      reason: 'Classification failed — skipping search as a safe default.',
+      searchQuery: topic,
     };
   }
 
   // Normalise and validate
   const decision = {
-    needsSearch:  Boolean(result.needsSearch),
-    reason:       result.reason       ?? 'No reason provided.',
-    searchQuery:  result.searchQuery  ?? topic,
+    needsSearch: Boolean(result.needsSearch),
+    reason: result.reason ?? 'No reason provided.',
+    searchQuery: result.searchQuery ?? topic,
   };
 
   // Console feedback
-  const icon  = decision.needsSearch ? chalk.yellow('🔍') : chalk.green('📚');
+  const icon = decision.needsSearch ? chalk.yellow('🔍') : chalk.green('📚');
   const label = decision.needsSearch ? chalk.yellow('WEB SEARCH NEEDED') : chalk.green('USING OWN KNOWLEDGE');
   console.log(`\n  ${icon}  Search Decision: ${label}`);
   console.log(chalk.dim(`     Reason: ${decision.reason}`));
