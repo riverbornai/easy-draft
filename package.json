@@ -6,6 +6,7 @@
     "dev:backend": "cd backend && yarn dev",
     "dev:frontend": "cd frontend && yarn dev",
     "dev": "npx concurrently -n Backend,Frontend -c cyan,magenta \"yarn dev:backend\" \"yarn dev:frontend\"",
-    "install:all": "yarn --cwd backend install && yarn --cwd frontend install"
+    "install:all": "yarn --cwd backend install && yarn --cwd frontend install",
+    "setup:hooks": "bash scripts/setup-pre-commit.sh"
   }
 }
