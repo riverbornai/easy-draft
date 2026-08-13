@@ -29,10 +29,10 @@ export default function Login() {
   const displayedError = error || (redirectError && `Sign-in failed: ${redirectError.code || redirectError.message}`);
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#0D2B22]">
-      <div className="w-full max-w-sm bg-[#103227] border border-[#1A4435] rounded-2xl p-8 space-y-6 shadow-2xl">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#0E2923] bg-[url('/wave-forest.svg')] bg-cover bg-center bg-no-repeat p-4">
+      <div className="w-full max-w-md bg-[#103227] border border-[#1A4435] rounded-2xl p-8 space-y-6 shadow-2xl">
         <div className="text-center space-y-2">
-          <p className="text-white text-xl font-black tracking-tighter">RIVERBORN AI</p>
+          <p className="text-white text-xl tracking-tighter" style={{ fontFamily: "'Schibsted Grotesk', sans-serif", fontWeight: 600 }}>EasyDraft</p>
           <p className="text-[#E8EDE6]/50 text-sm">Sign in to continue</p>
         </div>
 
@@ -53,6 +53,16 @@ export default function Login() {
           </svg>
           {loading ? 'Signing in…' : 'Sign in with Google'}
         </button>
+      </div>
+
+      {/* Footer Text outside the card */}
+      <div className="mt-8 text-center space-y-3 max-w-md px-6">
+        <p className="text-sm text-[#E8EDE6]/75 leading-relaxed font-medium">
+          EasyDraft is a professional multi-agent workspace for drafting, grading, and publishing content.
+        </p>
+        <p className="text-xs text-[#E8EDE6]/50 uppercase tracking-[0.2em] font-black">
+          Crafted with ♥ by <span className="text-[#D4F53C] hover:text-white transition-colors duration-300 cursor-pointer">riverborn.com</span>
+        </p>
       </div>
     </div>
   );
