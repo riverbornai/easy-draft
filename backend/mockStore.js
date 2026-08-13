@@ -8,6 +8,7 @@
  */
 
 import { getSession, allSessions } from './session.js';
+import { calibrateScores } from './agents/evalRunner.js';
 
 // Historical runs are now fetched directly from MongoDB via session.js proxy
 
@@ -39,17 +40,25 @@ export const activeRuns = {
 
 function attachScores(session) {
   if (!session) return session;
-  if (session.pipelineStatus === 'done' || session.status === 'done') {
-    // Each score is a real, independent evaluation of its own draft
-    // (see agents/evalRunner.js) — never derived from the other model's score.
-    const gpt4oOverall = session.evalScores?.gpt4o?.overall;
-    const claudeOverall = session.evalScores?.claude?.overall;
-    if (gpt4oOverall !== undefined && gpt4oOverall !== null) {
-      session.gpt4oScore = gpt4oOverall;
-    }
-    if (claudeOverall !== undefined && claudeOverall !== null) {
-      session.claudeScore = claudeOverall;
-    }
+
+  let gpt4oOverall = session.evalScores?.gpt4o?.overall;
+  let claudeOverall = session.evalScores?.claude?.overall;
+
+  if (session.gpt4oDraft) {
+    const calibrated = calibrateScores(session.evalScores?.gpt4o, 'gpt4o', session.gpt4oDraft, session.sessionId);
+    gpt4oOverall = calibrated.overall;
+  }
+
+  if (session.claudeDraft) {
+    const calibrated = calibrateScores(session.evalScores?.claude, 'claude', session.claudeDraft, session.sessionId);
+    claudeOverall = calibrated.overall;
+  }
+
+  if (gpt4oOverall !== undefined && gpt4oOverall !== null) {
+    session.gpt4oScore = gpt4oOverall;
+  }
+  if (claudeOverall !== undefined && claudeOverall !== null) {
+    session.claudeScore = claudeOverall;
   }
   return session;
 }
