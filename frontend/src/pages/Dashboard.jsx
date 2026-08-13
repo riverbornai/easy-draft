@@ -48,7 +48,7 @@ export default function Dashboard() {
       <div className="mb-6 flex items-end justify-between">
         <div>
           <h1 className="text-4xl font-black text-[#0D2B22] tracking-tighter">Overview</h1>
-          <p className="text-sm text-[#1A4435] mt-1 font-semibold uppercase tracking-wider">Riverborn AI</p>
+          <p className="text-sm text-[#1A4435] mt-1 font-semibold uppercase tracking-wider">EasyDraft</p>
         </div>
         <button
           onClick={() => navigate('/runs/new')}
@@ -79,7 +79,7 @@ export default function Dashboard() {
           <Zap className="absolute -right-8 -top-8 w-40 h-40 text-[#D4F53C] opacity-10 group-hover:scale-110 transition-transform duration-1000" />
           <div className="relative z-10">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E8EDE6]/60">System Status</p>
-            <h4 className="text-2xl font-black mt-2 tracking-tight">Riverborn Online</h4>
+            <h4 className="text-2xl font-black mt-2 tracking-tight">EasyDraft Online</h4>
           </div>
           <div className="relative z-10 flex items-center gap-2 mt-4">
             <span className="w-2.5 h-2.5 rounded-full bg-[#D4F53C] pulse-dot" />
