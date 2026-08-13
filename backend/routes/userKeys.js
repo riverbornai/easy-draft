@@ -17,27 +17,37 @@ function preview(key) {
 }
 
 router.get('/', async (req, res) => {
-  const record = await UserKeys.findOne({ userId: req.userId });
-  const openaiKey = record?.openaiKeyEncrypted ? decryptSecret(record.openaiKeyEncrypted) : null;
-  const anthropicKey = record?.anthropicKeyEncrypted ? decryptSecret(record.anthropicKeyEncrypted) : null;
+  try {
+    const record = await UserKeys.findOne({ userId: req.userId });
+    const openaiKey = record?.openaiKeyEncrypted ? decryptSecret(record.openaiKeyEncrypted) : null;
+    const anthropicKey = record?.anthropicKeyEncrypted ? decryptSecret(record.anthropicKeyEncrypted) : null;
 
-  res.json({
-    hasOpenAIKey: !!openaiKey,
-    hasAnthropicKey: !!anthropicKey,
-    openaiKeyPreview: preview(openaiKey),
-    anthropicKeyPreview: preview(anthropicKey),
-  });
+    res.json({
+      hasOpenAIKey: !!openaiKey,
+      hasAnthropicKey: !!anthropicKey,
+      openaiKeyPreview: preview(openaiKey),
+      anthropicKeyPreview: preview(anthropicKey),
+    });
+  } catch (err) {
+    console.error('Error fetching user keys:', err);
+    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+  }
 });
 
 router.put('/', async (req, res) => {
-  const { openaiKey, anthropicKey } = req.body;
-  const update = { updatedAt: new Date() };
+  try {
+    const { openaiKey, anthropicKey } = req.body;
+    const update = { updatedAt: new Date() };
 
-  if (openaiKey) update.openaiKeyEncrypted = encryptSecret(openaiKey.trim());
-  if (anthropicKey) update.anthropicKeyEncrypted = encryptSecret(anthropicKey.trim());
+    if (openaiKey) update.openaiKeyEncrypted = encryptSecret(openaiKey.trim());
+    if (anthropicKey) update.anthropicKeyEncrypted = encryptSecret(anthropicKey.trim());
 
-  await UserKeys.findOneAndUpdate({ userId: req.userId }, update, { upsert: true });
-  res.json({ success: true });
+    await UserKeys.findOneAndUpdate({ userId: req.userId }, update, { upsert: true });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving user keys:', err);
+    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+  }
 });
 
 export default router;
