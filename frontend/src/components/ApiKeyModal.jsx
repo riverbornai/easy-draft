@@ -114,7 +114,7 @@ export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
                 Configure API Keys
               </h3>
               <p className="text-xs text-[#D4F53C]/70 font-semibold uppercase tracking-wider mt-0.5">
-                Riverborn AI Platform
+                EasyDraft Platform
               </p>
             </div>
           </div>
