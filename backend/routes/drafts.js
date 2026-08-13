@@ -8,6 +8,7 @@ import { Router } from 'express';
 import { activeRuns } from '../mockStore.js';
 import { updateSession } from '../session.js';
 import { requireAuth } from '../middleware/auth.js';
+import { calibrateScores } from '../agents/evalRunner.js';
 
 const router = Router();
 router.use(requireAuth);
@@ -50,20 +51,40 @@ router.post('/approve', async (req, res) => {
   }
 
   if (run) {
+    const selectedModel = model ?? 'gpt4o';
+    const finalGptDraft = selectedModel === 'gpt4o' && editedContent ? editedContent : run.gpt4oDraft;
+    const finalClaudeDraft = selectedModel === 'claude' && editedContent ? editedContent : run.claudeDraft;
+
+    const gpt4oScores = calibrateScores(run.evalScores?.gpt4o, 'gpt4o', finalGptDraft, run.sessionId);
+    const claudeScores = calibrateScores(run.evalScores?.claude, 'claude', finalClaudeDraft, run.sessionId);
+    const winningScores = selectedModel === 'claude' ? claudeScores : gpt4oScores;
+
     const updates = {
       reviewStatus: 'approved',
-      activeModel: model ?? 'gpt4o',
+      activeModel: selectedModel,
       pipelineStatus: 'publish-ready',
-      currentStep: 4
+      currentStep: 4,
+      evalScores: {
+        ...run.evalScores,
+        accuracy: winningScores.accuracy,
+        toneMatch: winningScores.toneMatch,
+        formatCompliance: winningScores.formatCompliance,
+        hookStrength: winningScores.hookStrength,
+        overall: winningScores.overall,
+        gpt4o: gpt4oScores,
+        claude: claudeScores,
+      },
+      gpt4oScore: gpt4oScores.overall,
+      claudeScore: claudeScores.overall
     };
 
     if (editedContent) {
-      if (model === 'claude') updates.claudeDraft = editedContent;
-      else                    updates.gpt4oDraft  = editedContent;
+      if (selectedModel === 'claude') updates.claudeDraft = editedContent;
+      else                            updates.gpt4oDraft  = editedContent;
     }
 
     updates.approvedDraft = editedContent
-      ?? (model === 'claude' ? run.claudeDraft : run.gpt4oDraft);
+      ?? (selectedModel === 'claude' ? run.claudeDraft : run.gpt4oDraft);
 
     await updateSession(run.sessionId, updates);
   }
@@ -84,9 +105,20 @@ router.post('/reject', async (req, res) => {
   }
   
   if (run) {
+    const updatedNotes = [...(run.reviewNotes ?? []), feedback];
+    const gpt4oScores = calibrateScores(run.evalScores?.gpt4o, 'gpt4o', run.gpt4oDraft, run.sessionId);
+    const claudeScores = calibrateScores(run.evalScores?.claude, 'claude', run.claudeDraft, run.sessionId);
+
     await updateSession(run.sessionId, {
       reviewStatus: 'rejected',
-      reviewNotes: [...(run.reviewNotes ?? []), feedback]
+      reviewNotes: updatedNotes,
+      evalScores: {
+        ...run.evalScores,
+        gpt4o: gpt4oScores,
+        claude: claudeScores,
+      },
+      gpt4oScore: gpt4oScores.overall,
+      claudeScore: claudeScores.overall
     });
   }
   res.json({ success: true, message: 'Draft rejected — ReviewAgent will now re-run Writer' });
