@@ -23,18 +23,13 @@ export default function Sidebar({ apiStatus, onManageKey }) {
     <>
       <aside className="fixed top-0 left-0 h-screen w-64 bg-[#0D2B22] flex flex-col z-40 border-r border-[#1A4435] shadow-2xl">
         {/* Logo */}
-        <div className="px-6 pt-8 pb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#0D2B22] border border-[#1A4435] flex items-center justify-center shadow-lg group">
-              <img
-                src="/icons/icon-mark-forest-on-lime.png"
-                alt="Riverborn AI Logo"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <div>
-              <p className="text-white text-lg font-black tracking-tighter leading-none">RIVERBORN AI</p>
-            </div>
+        <div className="px-6 pt-8 pb-3">
+          <div className="flex items-center">
+            <img
+              src="/logo.png"
+              alt="EasyDraft Logo"
+              className="h-12 w-auto object-contain hover:scale-[1.02] transition-transform duration-300"
+            />
           </div>
         </div>
 
@@ -82,17 +77,17 @@ export default function Sidebar({ apiStatus, onManageKey }) {
               <button
                 onClick={() => setShowLogoutModal(true)}
                 title="Sign out"
-                className="text-[#E8EDE6]/40 hover:text-[#D4F53C] transition-colors"
+                className="text-[#D4F53C] hover:text-white transition-all duration-300 hover:scale-110 active:scale-95"
               >
-                <LogOut size={16} />
+                <LogOut size={18} />
               </button>
             </div>
           </div>
         )}
 
       {/* API & Key Status Panel */}
-      <div className="px-4 py-4 mt-auto border-t border-[#1A4435]">
-        <div className="bg-[#103227]/40 border border-[#1A4435] rounded-2xl p-4 space-y-4 backdrop-blur-sm relative overflow-hidden group">
+      <div className="px-4 pt-1 pb-4 mt-auto">
+        <div className="bg-[#103227]/40 border border-[#1A4435] rounded-2xl p-4 flex flex-col gap-4 backdrop-blur-sm relative overflow-hidden group">
           {/* Subtle background glow on hover */}
           <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-[#D4F53C]/5 rounded-full blur-2xl group-hover:bg-[#D4F53C]/10 transition-all duration-500" />
           
