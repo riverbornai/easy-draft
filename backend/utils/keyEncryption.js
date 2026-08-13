@@ -24,11 +24,18 @@ export function encryptSecret(plaintext) {
 }
 
 export function decryptSecret(payload) {
-  const raw = Buffer.from(payload, 'base64');
-  const iv = raw.subarray(0, 12);
-  const authTag = raw.subarray(12, 28);
-  const encrypted = raw.subarray(28);
-  const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), iv);
-  decipher.setAuthTag(authTag);
-  return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+  if (!payload) return null;
+  try {
+    const raw = Buffer.from(payload, 'base64');
+    if (raw.length < 28) return null;
+    const iv = raw.subarray(0, 12);
+    const authTag = raw.subarray(12, 28);
+    const encrypted = raw.subarray(28);
+    const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), iv);
+    decipher.setAuthTag(authTag);
+    return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+  } catch (err) {
+    console.error('⚠️ Failed to decrypt stored secret:', err.message);
+    return null;
+  }
 }
