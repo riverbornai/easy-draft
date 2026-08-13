@@ -1,26 +1,34 @@
 # Riverborn AI Content Studio
 
-Riverborn AI is a multi-agent content production studio built using the **OpenAI Agents SDK**. It automates the research, drafting, safety checking, human-in-the-loop review, and publishing of high-performing marketing and blog content across multiple channels.
+Riverborn AI is a production-ready, multi-agent content generation platform built on top of the **OpenAI Agents SDK** (`@openai/agents`). It coordinates a team of specialized AI agents to automate research, drafting, safety checking, human-in-the-loop review, and publishing of high-performing marketing and blog content.
 
 ---
 
 ## 🚀 Key Features
 
-* **Multi-Agent Pipeline:** Coordinates a structured pipeline of specialized AI agents to produce high-quality drafts.
-* **Web Search & Synthesis:** Gathers facts dynamically from the web to avoid hallucinations and ensure factual accuracy.
-* **Dual Drafting:** Generates drafts in parallel using different models (simulating GPT-4o and Claude) for comparison.
+* **Multi-Agent Orchestration:** Coordinates a structured pipeline of specialized agents (Intake, Research, Writer, Review, Publisher, and Grader).
+* **Web Search & Synthesis:** Gathers facts dynamically from the web using search tools to avoid hallucinations and ensure factual accuracy.
+* **Dual Model Drafting:** Generates candidate drafts in parallel using different models (simulating GPT-4o and Claude) for comparison.
 * **Human-in-the-Loop (HITL):** Supports reviewing, editing, and approving drafts through either a Web UI or a Terminal prompt.
 * **Safety Guardrails:** Automatically flags hallucinated stats, fake quotes, and toxic language before presenting drafts to humans.
-* **Performance Analysis & Leaderboard:** Evaluates approved drafts using an automated grader and logs historical performance over time.
-* **Client-Side API Key Management:** Add your OpenAI API key directly in the browser. Keys are encrypted and stored in local storage, passed to the backend via headers, and never stored on the server.
+* **Dynamic Multi-Metric Content Grader:** Evaluates draft quality on 4 dimensions (Hook strength, Format/readability, Depth/vocabulary diversity, and LLM Judge Rating) directly from text metrics, generating unique, non-static scores.
+* **Encrypted API Key Management:** Users provide their OpenAI/Anthropic keys via the browser UI. Keys are stored **encrypted at rest** in MongoDB using **AES-256-GCM** (keyed off a server-only `KEY_ENCRYPTION_SECRET`).
+* **Firebase Authentication with Dev Fallback:** Integrated with Firebase Auth. For local development, a fallback mechanism parses the JWT token payload directly, allowing local dev to run seamlessly without needing Firebase service account credentials.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** React (Vite), Tailwind CSS, React Router, Lucide Icons, Axios.
-* **Backend:** Node.js (Express), MongoDB (Mongoose), OpenAI API, Anthropic API (optional).
-* **Orchestration:** OpenAI Agents SDK (`@openai/agents`) with trace visualization.
+### Frontend
+* **Core:** React (Vite), React Router, Axios.
+* **UI/Styling:** Vanilla CSS & Tailwind CSS, Lucide Icons.
+* **Auth:** Firebase Client SDK.
+
+### Backend
+* **Core:** Node.js (Express), ESM (ES Modules).
+* **Database:** MongoDB (Mongoose) for session, logs, and encrypted user credentials.
+* **Orchestration:** OpenAI Agents SDK (`@openai/agents`) with trace logging.
+* **Encryption:** Node.js `crypto` (AES-256-GCM).
 
 ---
 
@@ -28,17 +36,19 @@ Riverborn AI is a multi-agent content production studio built using the **OpenAI
 
 ```text
 ├── backend/
-│   ├── agents/         # Agents: Intake, Research, Writer, Review, Publisher, Eval
+│   ├── agents/         # Agents: Intake, Research, Writer, Review, Publisher, Eval (Grader)
 │   ├── guardrails/     # Input & Output safety checks
-│   ├── routes/         # API endpoints
-│   ├── tools/          # Web search, format, and file-saving tools
-│   ├── templates/      # Formats (blog, email, social posts)
+│   ├── models/         # Mongoose schemas (Session, UserKeys)
+│   ├── routes/         # Express API endpoints
+│   ├── tools/          # Web search, formatting, and file-saving tools
+│   ├── utils/          # Encryption, Firebase admin initialization helpers
 │   ├── server.js       # Express server entrypoint
 │   └── .env.example    # Backend environment template
 ├── frontend/
 │   ├── src/
-│   │   ├── pages/      # Dashboard, Runs, Eval (Leaderboard), TraceLogs
-│   │   └── components/ # UI components
+│   │   ├── pages/      # Dashboard, Runs list, Eval (Leaderboard), TraceLogs
+│   │   ├── components/ # UI components (ApiKeyModal, PipelineBar, etc.)
+│   │   └── context/    # Authentication context
 │   └── .env.example    # Frontend environment template
 └── package.json        # Root package with monorepo scripts
 ```
@@ -49,10 +59,10 @@ Riverborn AI is a multi-agent content production studio built using the **OpenAI
 
 1. **Intake Agent:** Captures the content topic, target audience, channel, tone, and specific instructions.
 2. **Research Agent:** Performs internet searches, parses findings, and outputs a structured fact-sheet.
-3. **Writer Agent:** Writes content drafts in parallel.
-4. **Review Agent:** Performs safety guardrails and pauses for human approval (Terminal or Web).
+3. **Writer Agent:** Writes content drafts in parallel (GPT-4o vs Claude).
+4. **Review Agent:** Runs safety guardrails and pauses for human approval (Terminal or Web).
 5. **Publisher Agent:** Formats the final approved draft and saves it to the output folder.
-6. **Eval Runner:** Evaluates the draft quality (Accuracy, Tone match, Hook strength).
+6. **Eval Runner (Grader):** Evaluates draft quality dynamically on Hook strength, Format compliance, Readability, and Tone.
 
 ---
 
@@ -60,14 +70,13 @@ Riverborn AI is a multi-agent content production studio built using the **OpenAI
 
 ### Prerequisites
 
-* Node.js (>= 18)
-* Yarn or NPM
-* MongoDB (running locally or a connection URI)
-* OpenAI API Key (Can be configured in the Frontend, or provided in backend .env)
+* **Node.js** (>= 18)
+* **Yarn** or **NPM**
+* **MongoDB** (running locally or a connection URI)
 
 ### Step 1: Install Dependencies
 
-From the root directory, run the following command to install packages for both the backend and frontend:
+From the root directory, run the following command to install dependencies for both the backend and frontend:
 
 ```bash
 yarn install:all
@@ -75,20 +84,28 @@ yarn install:all
 
 ### Step 2: Configure Environment Variables
 
-#### Backend Setup:
-Go to the `backend/` folder, copy `.env.example` to `.env`, and populate your secrets:
+#### 1. Backend Setup:
+Go to the `backend/` folder, copy `.env.example` to `.env`:
 ```bash
 cp backend/.env.example backend/.env
 ```
-Ensure you provide:
-* `OPENAI_API_KEY` (Optional; if not provided here, you will be prompted to enter it in the browser)
-* `MONGO_DB` (or configure your MongoDB connection string in the env or code)
 
-#### Frontend Setup:
+Open `backend/.env` and configure the following variables:
+* `MONGO_DB`: Your MongoDB connection URI (e.g. `mongodb://localhost:27017/ai-content-studio`).
+* `KEY_ENCRYPTION_SECRET`: A secure 32-byte secret used to encrypt user API keys. You can generate one with:
+  ```bash
+  openssl rand -hex 32
+  ```
+* `FIREBASE_SERVICE_ACCOUNT` (Optional): Paste your Firebase Admin JSON credentials as a single line here. **If left empty, local development will bypass verification and run in fallback mode automatically.**
+
+#### 2. Frontend Setup:
 Go to the `frontend/` folder, copy `.env.example` to `.env`:
 ```bash
 cp frontend/.env.example frontend/.env
 ```
+Populate your Firebase configuration variables in `frontend/.env` (`VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, etc.).
+
+---
 
 ### Step 3: Run the Application
 
@@ -98,11 +115,12 @@ Start both the backend server and frontend development server concurrently from 
 yarn dev
 ```
 
-* **Frontend Dashboard:** http://localhost:3000
-* **Backend Server:** http://localhost:3001
+* **Frontend Dashboard:** [http://localhost:3000](http://localhost:3000)
+* **Backend Server:** [http://localhost:3001](http://localhost:3001)
 
 ---
 
 ## 📝 License
 
 Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
+
