@@ -1856,27 +1856,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai-content-studio@workspace:backend":
-  version: 0.0.0-use.local
-  resolution: "ai-content-studio@workspace:backend"
-  dependencies:
-    "@openai/agents": "npm:^0.0.5"
-    boxen: "npm:^8.0.1"
-    chalk: "npm:^5.3.0"
-    concurrently: "npm:^9.2.1"
-    cors: "npm:^2.8.6"
-    dotenv: "npm:^16.4.5"
-    express: "npm:^5.2.1"
-    figlet: "npm:^1.7.0"
-    firebase-admin: "npm:^12.7.0"
-    fs-extra: "npm:^11.2.0"
-    mongoose: "npm:^9.6.2"
-    nodemon: "npm:^3.1.14"
-    ora: "npm:^8.0.1"
-    zod: "npm:^4.4.3"
-  languageName: unknown
-  linkType: soft
-
 "ajv-formats@npm:^3.0.1":
   version: 3.0.1
   resolution: "ajv-formats@npm:3.0.1"
@@ -2485,6 +2464,57 @@ __metadata:
   checksum: 10/b44b98ba0ffac3a658b4b1bf877219e996db288c5ae6f3dc55ca9b2cbef7df60c10eabfdd947f3d73a623eb9975a74a66d6d61e6f26bff90155315adb362aa77
   languageName: node
   linkType: hard
+
+"easydraft-backend@workspace:backend":
+  version: 0.0.0-use.local
+  resolution: "easydraft-backend@workspace:backend"
+  dependencies:
+    "@openai/agents": "npm:^0.0.5"
+    boxen: "npm:^8.0.1"
+    chalk: "npm:^5.3.0"
+    concurrently: "npm:^9.2.1"
+    cors: "npm:^2.8.6"
+    dotenv: "npm:^16.4.5"
+    express: "npm:^5.2.1"
+    figlet: "npm:^1.7.0"
+    firebase-admin: "npm:^12.7.0"
+    fs-extra: "npm:^11.2.0"
+    mongoose: "npm:^9.6.2"
+    nodemon: "npm:^3.1.14"
+    ora: "npm:^8.0.1"
+    zod: "npm:^4.4.3"
+  languageName: unknown
+  linkType: soft
+
+"easydraft-frontend@workspace:frontend":
+  version: 0.0.0-use.local
+  resolution: "easydraft-frontend@workspace:frontend"
+  dependencies:
+    "@rollup/rollup-linux-x64-gnu": "npm:*"
+    "@types/react": "npm:^18.3.3"
+    "@types/react-dom": "npm:^18.3.0"
+    "@vitejs/plugin-react": "npm:^4.3.0"
+    autoprefixer: "npm:^10.4.19"
+    axios: "npm:^1.7.2"
+    firebase: "npm:^12.17.1"
+    lucide-react: "npm:^0.395.0"
+    postcss: "npm:^8.4.38"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    react-router-dom: "npm:^6.23.1"
+    tailwindcss: "npm:^3.4.4"
+    vite: "npm:^5.3.1"
+  dependenciesMeta:
+    "@rollup/rollup-linux-x64-gnu":
+      optional: true
+  languageName: unknown
+  linkType: soft
+
+"easydraft@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "easydraft@workspace:."
+  languageName: unknown
+  linkType: soft
 
 "ecdsa-sig-formatter@npm:1.0.11, ecdsa-sig-formatter@npm:^1.0.11":
   version: 1.0.11
@@ -4594,36 +4624,6 @@ __metadata:
   checksum: 10/af47851b547e8a8dc89af144fceee17b80d5beaf5e6f57ed086432d79943434ff67ca526e92275be6f54b6189f6920a24eace75c2657eed32d02c400312b21ec
   languageName: node
   linkType: hard
-
-"riverborn-ai-frontend@workspace:frontend":
-  version: 0.0.0-use.local
-  resolution: "riverborn-ai-frontend@workspace:frontend"
-  dependencies:
-    "@rollup/rollup-linux-x64-gnu": "npm:*"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
-    "@vitejs/plugin-react": "npm:^4.3.0"
-    autoprefixer: "npm:^10.4.19"
-    axios: "npm:^1.7.2"
-    firebase: "npm:^12.17.1"
-    lucide-react: "npm:^0.395.0"
-    postcss: "npm:^8.4.38"
-    react: "npm:^18.3.1"
-    react-dom: "npm:^18.3.1"
-    react-router-dom: "npm:^6.23.1"
-    tailwindcss: "npm:^3.4.4"
-    vite: "npm:^5.3.1"
-  dependenciesMeta:
-    "@rollup/rollup-linux-x64-gnu":
-      optional: true
-  languageName: unknown
-  linkType: soft
-
-"riverborn-ai@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "riverborn-ai@workspace:."
-  languageName: unknown
-  linkType: soft
 
 "rollup@npm:^4.20.0":
   version: 4.62.4
