@@ -1,5 +1,5 @@
 # Gitleaks configuration file
-title = "Riverborn AI Secret Scan Rules"
+title = "EasyDraft Secret Scan Rules"
 
 [allowlist]
 description = "Allowlist for harmless example files"
