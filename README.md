@@ -1,6 +1,6 @@
-# Riverborn AI Content Studio
+# EasyDraft
 
-Riverborn AI is a production-ready, multi-agent content generation platform built on top of the **OpenAI Agents SDK** (`@openai/agents`). It coordinates a team of specialized AI agents to automate research, drafting, safety checking, human-in-the-loop review, and publishing of high-performing marketing and blog content.
+EasyDraft is a production-ready, multi-agent content generation platform built on top of the **OpenAI Agents SDK** (`@openai/agents`). It coordinates a team of specialized AI agents to automate research, drafting, safety checking, human-in-the-loop review, and publishing of high-performing marketing and blog content.
 
 ---
 
@@ -91,7 +91,7 @@ cp backend/.env.example backend/.env
 ```
 
 Open `backend/.env` and configure the following variables:
-* `MONGO_DB`: Your MongoDB connection URI (e.g. `mongodb://localhost:27017/ai-content-studio`).
+* `MONGO_DB`: Your MongoDB connection URI (e.g. `mongodb://localhost:27017/easydraft`).
 * `KEY_ENCRYPTION_SECRET`: A secure 32-byte secret used to encrypt user API keys. You can generate one with:
   ```bash
   openssl rand -hex 32
