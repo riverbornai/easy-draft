@@ -557,27 +557,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai-content-studio@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "ai-content-studio@workspace:."
-  dependencies:
-    "@openai/agents": "npm:^0.0.5"
-    boxen: "npm:^8.0.1"
-    chalk: "npm:^5.3.0"
-    concurrently: "npm:^9.2.1"
-    cors: "npm:^2.8.6"
-    dotenv: "npm:^16.4.5"
-    express: "npm:^5.2.1"
-    figlet: "npm:^1.7.0"
-    firebase-admin: "npm:^12.7.0"
-    fs-extra: "npm:^11.2.0"
-    mongoose: "npm:^9.6.2"
-    nodemon: "npm:^3.1.14"
-    ora: "npm:^8.0.1"
-    zod: "npm:^4.4.3"
-  languageName: unknown
-  linkType: soft
-
 "ajv-formats@npm:^3.0.1":
   version: 3.0.1
   resolution: "ajv-formats@npm:3.0.1"
@@ -1047,6 +1026,27 @@ __metadata:
   checksum: 10/b44b98ba0ffac3a658b4b1bf877219e996db288c5ae6f3dc55ca9b2cbef7df60c10eabfdd947f3d73a623eb9975a74a66d6d61e6f26bff90155315adb362aa77
   languageName: node
   linkType: hard
+
+"easydraft-backend@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "easydraft-backend@workspace:."
+  dependencies:
+    "@openai/agents": "npm:^0.0.5"
+    boxen: "npm:^8.0.1"
+    chalk: "npm:^5.3.0"
+    concurrently: "npm:^9.2.1"
+    cors: "npm:^2.8.6"
+    dotenv: "npm:^16.4.5"
+    express: "npm:^5.2.1"
+    figlet: "npm:^1.7.0"
+    firebase-admin: "npm:^12.7.0"
+    fs-extra: "npm:^11.2.0"
+    mongoose: "npm:^9.6.2"
+    nodemon: "npm:^3.1.14"
+    ora: "npm:^8.0.1"
+    zod: "npm:^4.4.3"
+  languageName: unknown
+  linkType: soft
 
 "ecdsa-sig-formatter@npm:1.0.11, ecdsa-sig-formatter@npm:^1.0.11":
   version: 1.0.11

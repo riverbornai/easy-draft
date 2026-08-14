@@ -1,5 +1,5 @@
 {
-  "name": "ai-content-studio",
+  "name": "easydraft-backend",
   "version": "1.0.0",
   "description": "Multi-agent AI content production pipeline using OpenAI Agents SDK",
   "license": "MIT",

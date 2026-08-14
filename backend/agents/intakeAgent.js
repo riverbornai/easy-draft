@@ -37,7 +37,7 @@ const MAX_RETRY_ATTEMPTS = 3; // max times user can re-enter the brief
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function printBanner() {
-  console.log('\n' + chalk.bold.bgMagenta(' AI CONTENT STUDIO ') + chalk.bold.magenta(' — Intake Agent'));
+  console.log('\n' + chalk.bold.bgMagenta(' EASYDRAFT ') + chalk.bold.magenta(' — Intake Agent'));
   console.log(chalk.dim('  Powered by OpenAI Agents SDK\n'));
 }
 

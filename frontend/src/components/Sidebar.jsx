@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart2,
   Activity, Key, Clock, LogOut
@@ -22,15 +22,14 @@ export default function Sidebar({ apiStatus, onManageKey }) {
   return (
     <>
       <aside className="fixed top-0 left-0 h-screen w-64 bg-[#0D2B22] flex flex-col z-40 border-r border-[#1A4435] shadow-2xl">
-        {/* Logo */}
         <div className="px-6 pt-8 pb-3">
-          <div className="flex items-center">
+          <Link to="/" className="flex items-center">
             <img
               src="/logo.png"
               alt="EasyDraft Logo"
               className="h-12 w-auto object-contain hover:scale-[1.02] transition-transform duration-300"
             />
-          </div>
+          </Link>
         </div>
 
         {/* Nav */}

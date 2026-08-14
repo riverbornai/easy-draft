@@ -1,5 +1,5 @@
 /**
- * api/server.js — Express API server for AI Content Studio UI
+ * api/server.js — Express API server for EasyDraft UI
  * Runs on port 3001. Provides REST + SSE endpoints for the React frontend.
  */
 import 'dotenv/config';
@@ -141,6 +141,6 @@ app.get('/api/health', (_req, res) =>
 );
 
 app.listen(PORT, () => {
-  console.log(`\n🚀  AI Content Studio API → http://localhost:${PORT}`);
+  console.log(`\n🚀  EasyDraft API → http://localhost:${PORT}`);
   console.log(`   SSE endpoint → http://localhost:${PORT}/api/events\n`);
 });

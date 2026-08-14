@@ -1700,6 +1700,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"easydraft-frontend@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "easydraft-frontend@workspace:."
+  dependencies:
+    "@rollup/rollup-linux-x64-gnu": "npm:*"
+    "@types/react": "npm:^18.3.3"
+    "@types/react-dom": "npm:^18.3.0"
+    "@vitejs/plugin-react": "npm:^4.3.0"
+    autoprefixer: "npm:^10.4.19"
+    axios: "npm:^1.7.2"
+    firebase: "npm:^12.17.1"
+    lucide-react: "npm:^0.395.0"
+    postcss: "npm:^8.4.38"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    react-router-dom: "npm:^6.23.1"
+    tailwindcss: "npm:^3.4.4"
+    vite: "npm:^5.3.1"
+  dependenciesMeta:
+    "@rollup/rollup-linux-x64-gnu":
+      optional: true
+  languageName: unknown
+  linkType: soft
+
 "electron-to-chromium@npm:^1.5.393":
   version: 1.5.398
   resolution: "electron-to-chromium@npm:1.5.398"
@@ -2701,30 +2725,6 @@ __metadata:
   checksum: 10/af47851b547e8a8dc89af144fceee17b80d5beaf5e6f57ed086432d79943434ff67ca526e92275be6f54b6189f6920a24eace75c2657eed32d02c400312b21ec
   languageName: node
   linkType: hard
-
-"riverborn-ai-frontend@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "riverborn-ai-frontend@workspace:."
-  dependencies:
-    "@rollup/rollup-linux-x64-gnu": "npm:*"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
-    "@vitejs/plugin-react": "npm:^4.3.0"
-    autoprefixer: "npm:^10.4.19"
-    axios: "npm:^1.7.2"
-    firebase: "npm:^12.17.1"
-    lucide-react: "npm:^0.395.0"
-    postcss: "npm:^8.4.38"
-    react: "npm:^18.3.1"
-    react-dom: "npm:^18.3.1"
-    react-router-dom: "npm:^6.23.1"
-    tailwindcss: "npm:^3.4.4"
-    vite: "npm:^5.3.1"
-  dependenciesMeta:
-    "@rollup/rollup-linux-x64-gnu":
-      optional: true
-  languageName: unknown
-  linkType: soft
 
 "rollup@npm:^4.20.0":
   version: 4.62.3

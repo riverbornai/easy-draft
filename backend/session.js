@@ -1,7 +1,7 @@
 /**
  * session.js
  * ──────────────────────────────────────────────────────────────────────────────
- * Central session store for the AI Content Studio pipeline.
+ * Central session store for the EasyDraft pipeline.
  *
  * This file now uses MongoDB via Mongoose for persistent storage.
  * All functions are now ASYNCHRONOUS.
