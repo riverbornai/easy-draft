@@ -82,7 +82,15 @@ From the root directory, run the following command to install dependencies for b
 yarn install:all
 ```
 
-### Step 2: Configure Environment Variables
+### Step 2: Set Up Git Pre-Commit Hooks (Recommended)
+
+To prevent accidental commits of API keys or sensitive credentials, configure the local git pre-commit hook:
+
+```bash
+yarn setup:hooks
+```
+
+### Step 3: Configure Environment Variables
 
 #### 1. Backend Setup:
 Go to the `backend/` folder, copy `.env.example` to `.env`:
@@ -107,7 +115,7 @@ Populate your Firebase configuration variables in `frontend/.env` (`VITE_FIREBAS
 
 ---
 
-### Step 3: Run the Application
+### Step 4: Run the Application
 
 Start both the backend server and frontend development server concurrently from the root directory:
 
