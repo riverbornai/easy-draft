@@ -84,10 +84,10 @@ export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
       />
 
       {/* Modal Card */}
-      <div className="relative bg-white w-full max-w-[520px] rounded-3xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 z-10 overflow-hidden">
+      <div className="relative bg-white w-full max-w-[calc(100vw-2rem)] sm:max-w-[520px] rounded-3xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 z-10 overflow-hidden">
         
         {/* ── Gradient Header ── */}
-        <div className="relative bg-gradient-to-br from-[#0D2B22] via-[#163D30] to-[#0D2B22] px-8 pt-8 pb-6">
+        <div className="relative bg-gradient-to-br from-[#0D2B22] via-[#163D30] to-[#0D2B22] px-5 sm:px-8 pt-8 pb-6">
           {/* Subtle pattern overlay */}
           <div className="absolute inset-0 opacity-[0.04]" style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
@@ -128,17 +128,17 @@ export default function ApiKeyModal({ isOpen, onClose, forceOpen }) {
         </div>
 
         {/* ── Body ── */}
-        <div className="px-8 pt-6 pb-7">
+        <div className="px-5 sm:px-8 pt-6 pb-7">
 
           {/* Info Cards — side by side */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="flex gap-2.5 rounded-2xl bg-[#F2FFEE] border border-[#0D2B22]/8 p-4">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="flex-1 flex gap-2.5 rounded-2xl bg-[#F2FFEE] border border-[#0D2B22]/8 p-4">
               <Lock size={15} className="text-[#0D2B22]/50 mt-0.5 flex-shrink-0" />
               <p className="text-[12px] text-[#0D2B22]/70 leading-relaxed">
                 Your keys are <strong>encrypted</strong> and linked to <strong>your account</strong>, so they follow you to any device you sign in on.
               </p>
             </div>
-            <div className="flex gap-2.5 rounded-2xl bg-[#0D2B22]/[0.03] border border-[#0D2B22]/8 p-4">
+            <div className="flex-1 flex gap-2.5 rounded-2xl bg-[#0D2B22]/[0.03] border border-[#0D2B22]/8 p-4">
               <Sparkles size={15} className="text-[#0D2B22]/50 mt-0.5 flex-shrink-0" />
               <p className="text-[12px] text-[#0D2B22]/70 leading-relaxed">
                 <strong>Tip:</strong> Add both keys to compare GPT-4o vs Claude scores side by side. One key works fine too.
