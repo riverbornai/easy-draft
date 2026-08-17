@@ -43,16 +43,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-6xl mx-auto fade-in">
+    <div className="p-4 md:p-8 max-w-6xl mx-auto fade-in">
       {/* Header */}
-      <div className="mb-6 flex items-end justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black text-[#0D2B22] tracking-tighter">Overview</h1>
           <p className="text-sm text-[#1A4435] mt-1 font-semibold uppercase tracking-wider">EasyDraft</p>
         </div>
         <button
           onClick={() => navigate('/runs/new')}
-          className="flex items-center gap-2 bg-[#0D2B22] text-[#D4F53C] text-xs font-black uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-[#1A4435] hover:shadow-2xl hover:shadow-[#0D2B22]/20 transition-all active:scale-[0.98] border border-[#D4F53C]/20"
+          className="flex items-center justify-center gap-2 bg-[#0D2B22] text-[#D4F53C] text-xs font-black uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-[#1A4435] hover:shadow-2xl hover:shadow-[#0D2B22]/20 transition-all active:scale-[0.98] border border-[#D4F53C]/20"
         >
           <Plus size={16} strokeWidth={3} />
           <span>New Run</span>
@@ -60,7 +60,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Metric cards ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <ScoreCard
           label="Total Content Runs"
           value={metrics?.totalRuns ?? '—'}
@@ -75,7 +75,7 @@ export default function Dashboard() {
           color="lime"
           trend={5}
         />
-        <div className="bg-[#0D2B22] rounded-[2rem] p-8 text-white shadow-2xl shadow-[#0D2B22]/10 flex flex-col justify-between overflow-hidden relative group border border-[#1A4435]">
+        <div className="bg-[#0D2B22] rounded-[2rem] p-4 sm:p-8 text-white shadow-2xl shadow-[#0D2B22]/10 flex flex-col justify-between overflow-hidden relative group border border-[#1A4435]">
           <Zap className="absolute -right-8 -top-8 w-40 h-40 text-[#D4F53C] opacity-10 group-hover:scale-110 transition-transform duration-1000" />
           <div className="relative z-10">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E8EDE6]/60">System Status</p>
@@ -130,35 +130,37 @@ export default function Dashboard() {
               <div 
                 key={run.id || run.sessionId}
                 onClick={() => navigate(`/runs/${(run.id || run.sessionId).replace('session_', '')}`)}
-                className="group bg-white border border-[#E8EDE6] rounded-3xl p-4 flex items-center gap-6 hover:shadow-2xl hover:shadow-[#0D2B22]/5 hover:border-[#1A4435] transition-all duration-500 cursor-pointer"
+                className="group bg-white border border-[#E8EDE6] rounded-3xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 hover:shadow-2xl hover:shadow-[#0D2B22]/5 hover:border-[#1A4435] transition-all duration-500 cursor-pointer"
               >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-500 group-hover:scale-105 border ${
-                  run.pipelineStatus === 'done' 
-                    ? 'bg-[#F2FFEE] border-[#1A4435]/20 text-[#0D2B22]' 
-                    : 'bg-[#E8EDE6] border-[#1A4435]/10 text-[#0D2B22]'
-                }`}>
-                  {run.pipelineStatus === 'done' ? <Layout size={20} /> : <Clock size={20} className="animate-spin-slow" />}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-[10px] font-black text-[#1A4435] uppercase tracking-wider">#{run.id?.slice(-6) || run.sessionId?.slice(-6)}</span>
-                    <span className="text-[10px] font-bold text-[#E8EDE6]">/</span>
-                    <span className="text-[10px] font-bold text-[#1A4435] uppercase tracking-widest">{formatDate(run.createdAt)}</span>
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-500 group-hover:scale-105 border ${
+                    run.pipelineStatus === 'done' 
+                      ? 'bg-[#F2FFEE] border-[#1A4435]/20 text-[#0D2B22]' 
+                      : 'bg-[#E8EDE6] border-[#1A4435]/10 text-[#0D2B22]'
+                  }`}>
+                    {run.pipelineStatus === 'done' ? <Layout size={20} /> : <Clock size={20} className="animate-spin-slow" />}
                   </div>
-                  <h4 className="text-base font-black text-[#0D2B22] truncate group-hover:text-[#1A4435] transition-colors tracking-tight">
-                    {run.topic || run.brief?.topic}
-                  </h4>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <span className="text-[10px] font-black text-[#1A4435] uppercase tracking-wider">#{run.id?.slice(-6) || run.sessionId?.slice(-6)}</span>
+                      <span className="text-[10px] font-bold text-[#E8EDE6]">/</span>
+                      <span className="text-[10px] font-bold text-[#1A4435] uppercase tracking-widest">{formatDate(run.createdAt)}</span>
+                    </div>
+                    <h4 className="text-base font-black text-[#0D2B22] truncate group-hover:text-[#1A4435] transition-colors tracking-tight">
+                      {run.topic || run.brief?.topic}
+                    </h4>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-8 pr-2">
-                  <div className="text-right">
+                <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8 pt-3 sm:pt-0 border-t border-[#E8EDE6]/50 sm:border-0 pr-2">
+                  <div className="text-left sm:text-right">
                     <p className="text-[10px] font-black text-[#1A4435] uppercase tracking-[0.15em] mb-1">Channel</p>
                     <p className="text-xs font-black text-[#0D2B22] capitalize">{run.channel || run.brief?.channel}</p>
                   </div>
-                  <div className="text-right w-24">
+                  <div className="text-left sm:text-right w-24">
                     <p className="text-[10px] font-black text-[#1A4435] uppercase tracking-[0.15em] mb-1">Status</p>
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center sm:justify-end gap-2">
                       <span className={`w-2 h-2 rounded-full ${
                         run.pipelineStatus === 'done' ? 'bg-[#D4F53C]' : 'bg-amber-400 animate-pulse'
                       }`} />
