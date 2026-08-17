@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Clock, Calendar, ChevronRight, FileText, ExternalLink, Copy, Check, Plus, Activity, Layout, Loader2, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
+import { Clock, Calendar, ChevronLeft, ChevronRight, FileText, ExternalLink, Copy, Check, Plus, Activity, Layout, Loader2, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import PipelineBar from '../components/PipelineBar.jsx';
 import AgentLog from '../components/AgentLog.jsx';
 import NewRunForm from '../components/NewRunForm.jsx';
@@ -254,9 +254,9 @@ export default function Runs() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden fade-in bg-white">
+    <div className="flex h-screen overflow-hidden fade-in bg-white relative">
       {/* Sidebar List */}
-      <div className="w-80 border-r border-[#E8EDE6] flex flex-col bg-[#F2FFEE]/30">
+      <div className={`w-full lg:w-80 border-r border-[#E8EDE6] flex flex-col bg-[#F2FFEE]/30 ${(id || isCreating) ? 'hidden lg:flex' : 'flex'}`}>
         <div className="p-3 border-b border-[#E8EDE6] bg-white">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-black text-[#0D2B22] flex items-center gap-2">
@@ -350,15 +350,22 @@ export default function Runs() {
               })
             )}
           </div>
-        </div>
+      </div>
 
-        {/* Content View */}
-        <div className="flex-1 overflow-y-auto bg-[#F2FFEE]/10 flex flex-col">
-          {selectedRun ? (
+      {/* Content View */}
+      <div className={`flex-1 overflow-y-auto bg-[#F2FFEE]/10 flex flex-col ${(id || isCreating) ? 'flex' : 'hidden lg:flex'}`}>
+        {selectedRun ? (
             <>
               {/* Detail Header */}
-              <div className="px-8 pt-8 pb-4 border-b border-[#E8EDE6] sticky top-0 bg-white/80 backdrop-blur-md z-10 shadow-sm shadow-[#0D2B22]/5">
+              <div className="px-4 sm:px-8 pt-4 sm:pt-8 pb-4 border-b border-[#E8EDE6] sticky top-0 bg-white/80 backdrop-blur-md z-10 shadow-sm shadow-[#0D2B22]/5">
                 <div className="max-w-4xl mx-auto">
+                  <button 
+                    onClick={() => navigate('/runs')}
+                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#1A4435] hover:text-[#0D2B22] lg:hidden mb-4"
+                  >
+                    <ChevronLeft size={14} strokeWidth={3} />
+                    <span>Back to Runs</span>
+                  </button>
                   <div className="flex flex-wrap gap-3 mb-4">
                     <div className="bg-[#F2FFEE] px-3 py-1.5 rounded-xl flex items-center gap-2 border border-[#9FCEBE]/30">
                       <span className="text-[9px] text-[#1A4435] uppercase font-black tracking-widest opacity-60">Channel</span>
@@ -430,7 +437,7 @@ export default function Runs() {
               </div>
 
               {/* Detail Content */}
-              <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+              <div className="flex-1 p-4 sm:p-8 overflow-y-auto custom-scrollbar">
                 <div className="max-w-4xl mx-auto fade-in">
                   {/* Global Pipeline Progress - Only show in Output mode if awaiting review, otherwise show in Pipeline mode */}
                   {(viewMode === 'pipeline' || (selectedRun.pipelineStatus === 'review' && selectedRun.reviewStatus === 'pending')) && (
@@ -447,7 +454,7 @@ export default function Runs() {
                   {viewMode === 'output' ? (
                     /* Post Content View - Restored actual content display */
                     <div className="smooth-slide">
-                      <div className="bg-white rounded-[2rem] p-8 border border-[#E8EDE6] relative group shadow-2xl shadow-[#0D2B22]/5">
+                      <div className="bg-white rounded-[2rem] p-4 sm:p-8 border border-[#E8EDE6] relative group shadow-2xl shadow-[#0D2B22]/5">
                         <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-3">
                           <button 
                             onClick={handleCopy}
@@ -506,9 +513,9 @@ export default function Runs() {
                       {(selectedRun.gpt4oScore || selectedRun.claudeScore) && (
                         <div className="mt-16 pt-12 border-t border-[#E8EDE6]">
                           <h4 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-10">Performance Analytics</h4>
-                          <div className="grid grid-cols-2 gap-10">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                             {selectedRun.gpt4oScore && (
-                              <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
+                              <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-4 sm:p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
                                 <p className="text-[10px] font-black text-[#0D2B22] uppercase mb-4 tracking-widest opacity-60">GPT-4o Score</p>
                                 <div className="flex items-baseline gap-2">
                                   <span className="text-5xl font-black text-[#0D2B22] tracking-tighter">{selectedRun.gpt4oScore.toFixed(1)}</span>
@@ -520,7 +527,7 @@ export default function Runs() {
                               </div>
                             )}
                             {selectedRun.claudeScore && (
-                              <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
+                              <div className="bg-white border border-[#E8EDE6] rounded-[2rem] p-4 sm:p-8 shadow-sm hover:shadow-xl hover:shadow-[#0D2B22]/5 transition-all group">
                                 <p className="text-[10px] font-black text-[#1A4435] uppercase mb-4 tracking-widest opacity-60">Claude Score</p>
                                 <div className="flex items-baseline gap-2">
                                   <span className="text-5xl font-black text-[#0D2B22] tracking-tighter">{selectedRun.claudeScore.toFixed(1)}</span>
@@ -555,9 +562,9 @@ export default function Runs() {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-8 mb-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                               {/* GPT-4o Draft */}
-                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#D4F53C] hover:bg-white transition-all duration-500 group flex flex-col justify-between">
+                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-4 sm:p-8 hover:border-[#D4F53C] hover:bg-white transition-all duration-500 group flex flex-col justify-between">
                                 <div>
                                   <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-2">
@@ -589,7 +596,7 @@ export default function Runs() {
                               </div>
 
                               {/* Claude Draft */}
-                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-8 hover:border-[#0D2B22] hover:bg-white transition-all duration-500 group flex flex-col justify-between">
+                              <div className="bg-[#F2FFEE]/20 border border-[#E8EDE6] rounded-[2rem] p-4 sm:p-8 hover:border-[#0D2B22] hover:bg-white transition-all duration-500 group flex flex-col justify-between">
                                 <div>
                                   <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-2">
@@ -622,7 +629,7 @@ export default function Runs() {
                             </div>
 
                             {/* Reject Section */}
-                            <div className="bg-[#F2FFEE]/30 rounded-3xl p-8 border border-[#9FCEBE]/20">
+                            <div className="bg-[#F2FFEE]/30 rounded-3xl p-4 sm:p-8 border border-[#9FCEBE]/20">
                               <p className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-4 ml-1">Refinement Feedback</p>
                               <div className="flex flex-col gap-3">
                                 <textarea 
@@ -659,7 +666,7 @@ export default function Runs() {
             </div>
           </>
         ) : isCreating ? (
-          <div className="flex-1 overflow-y-auto bg-[#F2FFEE]/10 p-8">
+          <div className="flex-1 overflow-y-auto bg-[#F2FFEE]/10 p-4 sm:p-8">
             <NewRunForm />
           </div>
         ) : (id && !selectedRun) ? (
