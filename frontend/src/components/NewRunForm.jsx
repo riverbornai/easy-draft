@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Loader2, ArrowRight, Linkedin, FileText, Mail, Facebook, ChevronDown } from 'lucide-react';
+import { Loader2, ArrowRight, Linkedin, FileText, Mail, Facebook, ChevronDown, ChevronLeft } from 'lucide-react';
 
 const XIcon = ({ size = 16, className = "" }) => (
   <svg 
@@ -114,12 +114,20 @@ export default function NewRunForm() {
 
   return (
     <div className="fade-in max-w-3xl mx-auto pt-2">
+      <button 
+        type="button"
+        onClick={() => navigate('/runs')}
+        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[#1A4435] hover:text-[#0D2B22] lg:hidden mb-4"
+      >
+        <ChevronLeft size={14} strokeWidth={3} />
+        <span>Back to Runs</span>
+      </button>
       <div className="mb-6">
         <h1 className="text-3xl font-black text-[#0D2B22] leading-tight tracking-tight">Create New Run</h1>
         <p className="text-sm text-[#1A4435] font-semibold uppercase tracking-wider mt-2">Define your content brief to start the automated pipeline</p>
       </div>
 
-      <form onSubmit={submit} className="bg-white border border-[#E8EDE6] rounded-[2.5rem] p-8 shadow-sm space-y-6">
+      <form onSubmit={submit} className="bg-white border border-[#E8EDE6] rounded-[2.5rem] p-4 sm:p-8 shadow-sm space-y-6">
         
         {/* Topic */}
         <div>
@@ -149,7 +157,7 @@ export default function NewRunForm() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Tone */}
           <div>
             <label className="block text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-3 ml-1">Tone</label>
@@ -259,7 +267,7 @@ export default function NewRunForm() {
         {/* Channel */}
         <div>
           <label className="block text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em] mb-4 ml-1">Channel</label>
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {CHANNELS.map(ch => (
               <button
                 key={ch.id}
