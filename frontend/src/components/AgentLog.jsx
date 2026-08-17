@@ -17,7 +17,7 @@ const STATUS_DOT = {
 
 export default function AgentLog({ logs = [] }) {
   return (
-    <div className="bg-white border border-[#E8EDE6] rounded-[1.5rem] p-6 shadow-sm">
+    <div className="bg-white border border-[#E8EDE6] rounded-[1.5rem] p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-[11px] font-black text-[#1A4435] uppercase tracking-[0.2em]">Live Agent Trace</h3>
         <div className="flex items-center gap-2 bg-[#F2FFEE] px-3 py-1.5 rounded-lg border border-[#9FCEBE]/30">
