@@ -1,7 +1,7 @@
 import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart2,
-  Activity, Key, Clock, LogOut
+  Activity, Key, Clock, LogOut, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -15,21 +15,36 @@ const navItems = [
 import { useState } from 'react';
 import LogoutModal from './LogoutModal.jsx';
 
-export default function Sidebar({ apiStatus, onManageKey }) {
+export default function Sidebar({ apiStatus, onManageKey, isOpen, onClose }) {
   const { currentUser, logout } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  const handleNavLinkClick = () => {
+    if (window.innerWidth < 1024 && onClose) {
+      onClose();
+    }
+  };
+
   return (
     <>
-      <aside className="fixed top-0 left-0 h-screen w-64 bg-[#0D2B22] flex flex-col z-40 border-r border-[#1A4435] shadow-2xl">
-        <div className="px-6 pt-8 pb-3">
-          <Link to="/" className="flex items-center">
+      <aside className={`fixed top-0 left-0 h-screen w-64 bg-[#0D2B22] flex flex-col z-50 border-r border-[#1A4435] shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="px-6 pt-8 pb-3 flex items-center justify-between">
+          <Link to="/" className="flex items-center" onClick={handleNavLinkClick}>
             <img
               src="/logo.png"
               alt="EasyDraft Logo"
               className="h-12 w-auto object-contain hover:scale-[1.02] transition-transform duration-300"
             />
           </Link>
+          <button
+            onClick={onClose}
+            className="text-[#E8EDE6]/50 hover:text-white p-2 rounded-xl transition-colors lg:hidden focus:outline-none"
+            title="Close menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Nav */}
@@ -39,6 +54,7 @@ export default function Sidebar({ apiStatus, onManageKey }) {
               key={to}
               to={to}
               end={to === '/'}
+              onClick={handleNavLinkClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all duration-300 relative group ${isActive
                   ? 'bg-white/5 text-[#D4F53C]'
@@ -74,7 +90,10 @@ export default function Sidebar({ apiStatus, onManageKey }) {
                 {currentUser.email}
               </span>
               <button
-                onClick={() => setShowLogoutModal(true)}
+                onClick={() => {
+                  setShowLogoutModal(true);
+                  // Keep sidebar open so they can see the dialog properly
+                }}
                 title="Sign out"
                 className="text-[#D4F53C] hover:text-white transition-all duration-300 hover:scale-110 active:scale-95"
               >
@@ -116,7 +135,10 @@ export default function Sidebar({ apiStatus, onManageKey }) {
 
           {/* Button */}
           <button
-            onClick={onManageKey}
+            onClick={() => {
+              onManageKey();
+              handleNavLinkClick();
+            }}
             className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 active:scale-[0.97] relative z-10
               bg-[#1A4435] text-[#E8EDE6] border border-[#1A4435] 
               hover:border-[#D4F53C] hover:text-[#D4F53C] hover:shadow-[0_0_20px_rgba(212,245,60,0.15)]"
