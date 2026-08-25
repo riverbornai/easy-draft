@@ -1,0 +1,19 @@
+{
+  "name": "easydraft",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "yarn@4.9.1",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm --prefix frontend run build && mkdir -p dist && cp -R frontend/dist/. dist/",
+    "build:frontend": "npm --prefix frontend run build && mkdir -p dist && cp -R frontend/dist/. dist/",
+    "dev:backend": "cd backend && yarn dev",
+    "dev:frontend": "cd frontend && yarn dev",
+    "dev": "npx concurrently -n Backend,Frontend -c cyan,magenta \"yarn dev:backend\" \"yarn dev:frontend\"",
+    "install:all": "yarn --cwd backend install && yarn --cwd frontend install",
+    "setup:hooks": "bash scripts/setup-pre-commit.sh"
+  }
+}

@@ -1,0 +1,63 @@
+:root {
+  --brand-forest: #0D2B22;
+  --brand-lime: #D4F53C;
+  --brand-frost: #F2FFEE;
+  --brand-midnight: #060F0C;
+  --brand-white: #FFFFFF;
+  --brand-river-mist: #9FCEBE;
+  --brand-deep-forest: #1A4435;
+  --brand-stone: #E8EDE6;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--brand-white);
+  color: var(--brand-forest);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--brand-stone); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--brand-river-mist); }
+
+/* Shimmer animation for progress bar connectors */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth slide animation for content transitions */
+.smooth-slide {
+  animation: smoothSlide 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes smoothSlide {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Micro-transition for hover effects */
+.transition-smooth {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--brand-stone);
+}
+
+.brand-shadow {
+  shadow: 0 10px 30px -10px rgba(13, 43, 34, 0.1);
+}

@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Yarn
+.yarn/
+backend/.yarn/
+frontend/.yarn/
+
+# Build
+dist/
+frontend/dist/
+
+# Environment
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Secrets & Credentials
+*.pem
+*.key
+*.p12
+*service-account*.json
+*firebase-adminsdk*.json
+
+# App Data
+backend/sandbox/
+backend/output/
+backend/outputs/
+backend/data/
+
+# Build
+frontend/dist/
+
+# System
+.DS_Store
+*.log
